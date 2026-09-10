@@ -15,7 +15,7 @@ function makeKey(title: string) {
   return slug || crypto.randomUUID()
 }
 
-export default function Settings() {
+export function Settings() {
   const { user } = useAuth()
   const [template, setTemplate] = useState<TemplateSection[]>([])
   const [productContext, setProductContext] = useState('')
@@ -81,7 +81,7 @@ export default function Settings() {
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-10">
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-8 flex items-center justify-between border-b border-slate-200 pb-6">
         <h1 className="text-xl font-bold text-slate-900">설정</h1>
         <span className="text-sm text-slate-400">{status === 'saving' ? '저장 중...' : status === 'saved' ? '저장됨' : ''}</span>
       </div>
@@ -90,42 +90,48 @@ export default function Settings() {
         <h2 className="mb-3 text-sm font-semibold text-slate-700">섹션 템플릿</h2>
         <div className="flex flex-col gap-3">
           {template.map((section, index) => (
-            <div key={section.key} className="rounded-md border border-slate-200 p-3">
-              <div className="mb-2 flex items-center gap-2">
+            <div key={section.key} className="rounded-md border border-slate-200 bg-white p-4 shadow-sm">
+              <div className="mb-3 flex items-center gap-2">
+                <span className="w-4 shrink-0 text-xs font-medium text-slate-400">{index + 1}</span>
                 <input
                   value={section.title}
                   onChange={(e) => updateSection(index, { title: e.target.value })}
-                  className="flex-1 rounded border border-slate-300 px-2 py-1 text-sm"
+                  className="min-w-0 flex-1 rounded-md border border-slate-300 px-3 py-1.5 text-sm focus:border-slate-400 focus:outline-none"
                 />
-                <button
-                  type="button"
-                  onClick={() => moveSection(index, -1)}
-                  disabled={index === 0}
-                  className="rounded border border-slate-300 px-2 py-1 text-xs text-slate-600 disabled:opacity-30"
-                >
-                  ↑
-                </button>
-                <button
-                  type="button"
-                  onClick={() => moveSection(index, 1)}
-                  disabled={index === template.length - 1}
-                  className="rounded border border-slate-300 px-2 py-1 text-xs text-slate-600 disabled:opacity-30"
-                >
-                  ↓
-                </button>
-                <button
-                  type="button"
-                  onClick={() => removeSection(index)}
-                  className="rounded border border-red-300 px-2 py-1 text-xs text-red-600"
-                >
-                  삭제
-                </button>
+                <div className="flex shrink-0 items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => moveSection(index, -1)}
+                    disabled={index === 0}
+                    aria-label="위로 이동"
+                    className="flex h-7 w-7 items-center justify-center rounded-md border border-slate-300 text-xs text-slate-600 hover:bg-slate-50 disabled:opacity-30"
+                  >
+                    ↑
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => moveSection(index, 1)}
+                    disabled={index === template.length - 1}
+                    aria-label="아래로 이동"
+                    className="flex h-7 w-7 items-center justify-center rounded-md border border-slate-300 text-xs text-slate-600 hover:bg-slate-50 disabled:opacity-30"
+                  >
+                    ↓
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => removeSection(index)}
+                    aria-label="삭제"
+                    className="flex h-7 w-7 items-center justify-center rounded-md border border-red-200 text-xs text-red-600 hover:bg-red-50"
+                  >
+                    ✕
+                  </button>
+                </div>
               </div>
               <textarea
                 value={section.hint}
                 onChange={(e) => updateSection(index, { hint: e.target.value })}
                 rows={2}
-                className="w-full rounded border border-slate-300 px-2 py-1 text-sm text-slate-600"
+                className="w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600 focus:border-slate-400 focus:outline-none"
               />
             </div>
           ))}
@@ -140,22 +146,28 @@ export default function Settings() {
       </section>
 
       <section className="mb-6">
-        <h2 className="mb-2 text-sm font-semibold text-slate-700">제품 설명</h2>
+        <label htmlFor="product-context" className="mb-2 block text-sm font-semibold text-slate-700">
+          제품 설명
+        </label>
         <textarea
+          id="product-context"
           value={productContext}
           onChange={(e) => setProductContext(e.target.value)}
           rows={4}
-          className="w-full rounded border border-slate-300 px-2 py-1.5 text-sm"
+          className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none"
         />
       </section>
 
       <section>
-        <h2 className="mb-2 text-sm font-semibold text-slate-700">용어집</h2>
+        <label htmlFor="glossary" className="mb-2 block text-sm font-semibold text-slate-700">
+          용어집
+        </label>
         <textarea
+          id="glossary"
           value={glossary}
           onChange={(e) => setGlossary(e.target.value)}
           rows={4}
-          className="w-full rounded border border-slate-300 px-2 py-1.5 text-sm"
+          className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none"
         />
       </section>
     </main>

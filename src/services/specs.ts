@@ -10,6 +10,7 @@ import {
   updateDoc,
   where,
 } from 'firebase/firestore'
+import type { Timestamp } from 'firebase/firestore'
 import { db } from '../firebase'
 import type { TemplateSection } from '../lib/defaultTemplate'
 
@@ -28,8 +29,8 @@ export interface Spec {
   oneLiner: string
   status: SpecStatus
   sections: SpecSection[]
-  createdAt: unknown
-  updatedAt: unknown
+  createdAt: Timestamp
+  updatedAt: Timestamp
 }
 
 export async function createSpec(

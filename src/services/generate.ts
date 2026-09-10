@@ -9,17 +9,33 @@ export interface GenerateResult {
   text: string
 }
 
+function isGenerateResult(data: unknown): data is GenerateResult {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    typeof (data as Record<string, unknown>).mode === 'string' &&
+    typeof (data as Record<string, unknown>).text === 'string'
+  )
+}
+
+function parseGenerateResult(data: unknown): GenerateResult {
+  if (!isGenerateResult(data)) {
+    throw new Error('Functions 응답 형식이 올바르지 않습니다.')
+  }
+  return data
+}
+
 export async function generateDraft(specId: string): Promise<GenerateResult> {
   const result = await generateFn({ mode: 'draft', specId })
-  return result.data as GenerateResult
+  return parseGenerateResult(result.data)
 }
 
 export async function regenerateSection(specId: string, sectionKey: string): Promise<GenerateResult> {
   const result = await generateFn({ mode: 'section', specId, sectionKey })
-  return result.data as GenerateResult
+  return parseGenerateResult(result.data)
 }
 
 export async function critique(specId: string): Promise<GenerateResult> {
   const result = await generateFn({ mode: 'critique', specId })
-  return result.data as GenerateResult
+  return parseGenerateResult(result.data)
 }

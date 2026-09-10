@@ -5,7 +5,7 @@ import { signInWithPopup, signInWithRedirect } from 'firebase/auth'
 import { auth, googleProvider } from '../firebase'
 import { useAuth } from '../contexts/AuthContext'
 
-export default function SignIn() {
+export function SignIn() {
   const { user, loading } = useAuth()
   const navigate = useNavigate()
 
@@ -31,15 +31,17 @@ export default function SignIn() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-4 px-4 text-center">
-      <h1 className="text-2xl font-bold text-slate-900">PRD 작성 도구</h1>
-      <button
-        type="button"
-        onClick={handleSignIn}
-        className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700"
-      >
-        Google로 로그인
-      </button>
+    <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
+      <div className="flex w-full max-w-sm flex-col items-center gap-4 rounded-md border border-slate-200 bg-white p-8 text-center shadow-sm">
+        <h1 className="text-2xl font-bold text-slate-900">PRD 작성 도구</h1>
+        <button
+          type="button"
+          onClick={handleSignIn}
+          className="w-full rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700"
+        >
+          Google로 로그인
+        </button>
+      </div>
     </main>
   )
 }

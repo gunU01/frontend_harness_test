@@ -29,7 +29,7 @@ function parseDraft(text: string): Record<string, string> {
   return result
 }
 
-export default function SpecEditor() {
+export function SpecEditor() {
   const { id } = useParams<{ id: string }>()
   const isDesktop = useIsDesktop()
 
@@ -181,17 +181,17 @@ export default function SpecEditor() {
         <input
           value={spec.title}
           onChange={(e) => setSpec({ ...spec, title: e.target.value })}
-          className="rounded border border-slate-300 px-2 py-1.5 text-lg font-bold text-slate-900"
+          className="rounded-md border border-slate-300 px-3 py-1.5 text-lg font-bold text-slate-900 focus:border-slate-400 focus:outline-none"
         />
         <input
           value={spec.oneLiner}
           onChange={(e) => setSpec({ ...spec, oneLiner: e.target.value })}
           placeholder="한 줄 문제 정의"
-          className="rounded border border-slate-300 px-2 py-1.5 text-sm text-slate-600"
+          className="rounded-md border border-slate-300 px-3 py-1.5 text-sm text-slate-600 focus:border-slate-400 focus:outline-none"
         />
       </div>
 
-      <div className="mb-4 flex gap-2">
+      <div className="mb-6 flex flex-wrap items-center gap-2 rounded-md border border-slate-200 bg-slate-50 p-2">
         <button
           type="button"
           onClick={handleGenerateDraft}
@@ -204,7 +204,7 @@ export default function SpecEditor() {
           type="button"
           onClick={handleRegenerateSection}
           disabled={busy !== null || !selectedKey}
-          className="rounded-md border border-slate-300 px-3 py-1.5 text-sm text-slate-700 disabled:opacity-50"
+          className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-100 disabled:opacity-50"
         >
           {busy === 'section' ? '생성 중...' : '이 섹션 다시 쓰기'}
         </button>
@@ -212,7 +212,7 @@ export default function SpecEditor() {
           type="button"
           onClick={handleCritique}
           disabled={busy !== null}
-          className="rounded-md border border-slate-300 px-3 py-1.5 text-sm text-slate-700 disabled:opacity-50"
+          className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-100 disabled:opacity-50"
         >
           {busy === 'critique' ? '분석 중...' : '빈틈 지적'}
         </button>
@@ -234,15 +234,15 @@ export default function SpecEditor() {
         </div>
       )}
 
-      <div className="grid grid-cols-[200px_1fr] gap-4">
-        <div className="flex flex-col gap-1">
+      <div className="grid grid-cols-[200px_1fr] items-start gap-6">
+        <div className="flex min-w-0 flex-col gap-1 rounded-md border border-slate-200 bg-slate-50 p-2">
           {spec.sections.map((section) => (
             <button
               key={section.key}
               type="button"
               onClick={() => selectSection(section.key)}
-              className={`rounded-md px-3 py-2 text-left text-sm ${
-                section.key === selectedKey ? 'bg-slate-900 text-white' : 'text-slate-700 hover:bg-slate-100'
+              className={`truncate rounded-md px-3 py-2 text-left text-sm ${
+                section.key === selectedKey ? 'bg-slate-900 text-white' : 'text-slate-700 hover:bg-white'
               }`}
             >
               {section.title}
@@ -250,11 +250,15 @@ export default function SpecEditor() {
           ))}
         </div>
 
+        <label htmlFor="section-content" className="sr-only">
+          {selectedSection?.title} 내용
+        </label>
         <textarea
+          id="section-content"
           value={selectedSection?.content ?? ''}
           onChange={(e) => updateSectionContent(e.target.value)}
           rows={20}
-          className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+          className="min-w-0 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none"
         />
       </div>
     </main>

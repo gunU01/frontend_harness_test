@@ -17,7 +17,7 @@ const statusLabels: Record<SpecStatus, string> = {
   done: '완료',
 }
 
-export default function SpecList() {
+export function SpecList() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const [specs, setSpecs] = useState<Spec[]>([])
@@ -57,19 +57,31 @@ export default function SpecList() {
       </div>
 
       {creating && (
-        <div className="mb-8 flex flex-col gap-2 rounded-md border border-slate-200 p-4">
-          <input
-            value={newTitle}
-            onChange={(e) => setNewTitle(e.target.value)}
-            placeholder="제목"
-            className="rounded border border-slate-300 px-2 py-1.5 text-sm"
-          />
-          <input
-            value={newOneLiner}
-            onChange={(e) => setNewOneLiner(e.target.value)}
-            placeholder="한 줄 문제 정의"
-            className="rounded border border-slate-300 px-2 py-1.5 text-sm"
-          />
+        <div className="mb-8 flex flex-col gap-3 rounded-md border border-slate-200 p-4">
+          <div className="flex flex-col gap-1">
+            <label htmlFor="new-spec-title" className="text-xs text-slate-500">
+              제목
+            </label>
+            <input
+              id="new-spec-title"
+              value={newTitle}
+              onChange={(e) => setNewTitle(e.target.value)}
+              placeholder="제목"
+              className="rounded-md border border-slate-300 px-3 py-1.5 text-sm focus:border-slate-400 focus:outline-none"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label htmlFor="new-spec-one-liner" className="text-xs text-slate-500">
+              한 줄 문제 정의
+            </label>
+            <input
+              id="new-spec-one-liner"
+              value={newOneLiner}
+              onChange={(e) => setNewOneLiner(e.target.value)}
+              placeholder="한 줄 문제 정의"
+              className="rounded-md border border-slate-300 px-3 py-1.5 text-sm focus:border-slate-400 focus:outline-none"
+            />
+          </div>
           <div className="flex gap-2">
             <button
               type="button"
@@ -99,11 +111,13 @@ export default function SpecList() {
             <Link
               key={spec.id}
               to={`/specs/${spec.id}`}
-              className="rounded-md border border-slate-200 p-4 hover:border-slate-300"
+              className="rounded-md border border-slate-200 p-4 transition-shadow hover:border-slate-300 hover:shadow-sm"
             >
               <div className="mb-2 flex items-center justify-between gap-2">
                 <h2 className="font-medium text-slate-900">{spec.title}</h2>
-                <span className={`rounded-full px-2 py-0.5 text-xs ${statusStyles[spec.status]}`}>
+                <span
+                  className={`inline-flex shrink-0 items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium ${statusStyles[spec.status]}`}
+                >
                   {statusLabels[spec.status]}
                 </span>
               </div>
