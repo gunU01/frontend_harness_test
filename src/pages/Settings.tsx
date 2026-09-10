@@ -90,7 +90,7 @@ export function Settings() {
         <h2 className="mb-3 text-sm font-semibold text-slate-700">섹션 템플릿</h2>
         <div className="flex flex-col gap-3">
           {template.map((section, index) => (
-            <div key={section.key} className="rounded-md border border-slate-200 bg-white p-4 shadow-sm">
+            <div key={section.key} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
               <div className="mb-3 flex items-center gap-2">
                 <span className="w-4 shrink-0 text-xs font-medium text-slate-400">{index + 1}</span>
                 <input

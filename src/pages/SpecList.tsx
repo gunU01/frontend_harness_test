@@ -49,7 +49,7 @@ export function SpecList() {
           <button
             type="button"
             onClick={() => setCreating(true)}
-            className="rounded-md bg-slate-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-700"
+            className="rounded-md bg-primary-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-700"
           >
             새 스펙 만들기
           </button>
@@ -86,7 +86,7 @@ export function SpecList() {
             <button
               type="button"
               onClick={handleCreate}
-              className="rounded-md bg-slate-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-700"
+              className="rounded-md bg-primary-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-700"
             >
               만들기
             </button>
@@ -111,7 +111,7 @@ export function SpecList() {
             <Link
               key={spec.id}
               to={`/specs/${spec.id}`}
-              className="rounded-md border border-slate-200 p-4 transition-shadow hover:border-slate-300 hover:shadow-sm"
+              className="rounded-lg border border-slate-200 p-4 transition-shadow hover:border-slate-300 hover:shadow-sm"
             >
               <div className="mb-2 flex items-center justify-between gap-2">
                 <h2 className="font-medium text-slate-900">{spec.title}</h2>

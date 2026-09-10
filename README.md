@@ -28,6 +28,14 @@ specs/{specId}
   createdAt, updatedAt
 ```
 
+## 디자인 시스템
+
+Figma에 별도 파일로 구축했습니다: [PRD 작성 도구 디자인 시스템](https://www.figma.com/design/Eqfw554mL4YxqKbcXRq3su)
+
+- **레퍼런스**: KRDS(대한민국 정부 디지털서비스 디자인시스템 — 중립적이고 접근성 중심인 톤)와 토스 디자인시스템(부드러운 radius, 신뢰감 있는 브랜드 블루, 절제된 컴포넌트 수)을 일반적으로 알려진 원칙 수준에서 참고했습니다. 개인이 링크로 준 블로그 글 3개는 이 환경의 네트워크 정책상 접근이 막혀 있고 제가 내용을 알지 못해 반영하지 않았습니다 — 모르는 걸 아는 척 반영하지 않기 위한 선택입니다.
+- **범위**: `figma-generate-library` 스킬이 요구하는 "프로덕션급"(20~100회 작업, 전체 문서화, 다크모드, Code Connect)은 1인 프로젝트 규모에 비해 과해서 의도적으로 줄였습니다 — Primitives/Semantic Color/Spacing/Radius 토큰 4개 컬렉션 + 텍스트 스타일 4개 + 컴포넌트 5개(Button×2, Badge×3, Input, Card)만 구축.
+- **코드 반영**: `tailwind.config.js`에 `primary`(브랜드 블루, #3182F6 계열) 컬러와 Pretendard 폰트를 추가하고, 기존 `bg-slate-900` 기반 primary 버튼을 `primary-600`으로, 카드형 요소 radius를 `rounded-md`→`rounded-lg`로 올렸습니다. 상태 배지·테두리·본문 텍스트 색은 원래 Tailwind 기본값과 이미 일치해 변경하지 않았습니다.
+
 ## 로컬 실행
 
 ```bash
