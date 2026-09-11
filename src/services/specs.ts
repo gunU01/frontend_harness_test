@@ -32,6 +32,7 @@ export interface Spec {
   sections: SpecSection[]
   templateId: string
   docType: string
+  published: boolean
   createdAt: Timestamp
   updatedAt: Timestamp
 }
@@ -57,6 +58,7 @@ export async function createSpec(
     sections,
     templateId: template.id,
     docType: template.name,
+    published: false,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   })
@@ -66,6 +68,12 @@ export async function createSpec(
 
 export async function listSpecs(uid: string): Promise<Spec[]> {
   const q = query(collection(db, 'specs'), where('uid', '==', uid), orderBy('updatedAt', 'desc'))
+  const snap = await getDocs(q)
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Spec)
+}
+
+export async function listPublishedSpecs(): Promise<Spec[]> {
+  const q = query(collection(db, 'specs'), where('published', '==', true), orderBy('updatedAt', 'desc'))
   const snap = await getDocs(q)
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Spec)
 }

@@ -9,6 +9,10 @@ You are working as the orchestrator of a frontend development harness for this r
 * Styling : Tailwind CSS, tokens synced from the Figma design system
 * Conventions: functional components, named exports, one component per file, reuse existing patterns before creating new ones. Full detail: `CONVENTIONS.md` — read it (or the closest existing file) before writing new code, don't invent a new pattern where one already exists.
 
+## Planning
+
+* `PLANNING.md` is the product's own PRD (problem/evidence/goals/non-goals/solution/risks/rollout), kept in the same template shape this tool itself produces for users. Before taking on a scope change bigger than a single bug fix or small polish, check it — and update it — so "why we built this" stays a decision a future session can read, not something reconstructed from commit messages.
+
 ## How to work
 
 * Break each request into per-component tasks and delegate implementation to the subagents defined in `.claude/agents/` (planner, builder, styler, reviewer). Do not do all the heavy work in the main context — spawn subagents so their file-reading and building stays out of the main conversation.

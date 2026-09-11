@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { getSpec, updateSpec } from '../services/specs'
 import type { Spec, SpecSection } from '../services/specs'
 import { critique, generateDraft, regenerateSection } from '../services/generate'
@@ -46,11 +46,13 @@ export function SpecEditor() {
 
   useEffect(() => {
     if (!id) return
-    getSpec(id).then((result) => {
-      setSpec(result)
-      setSelectedKey(result?.sections[0]?.key ?? null)
-      setLoading(false)
-    })
+    getSpec(id)
+      .then((result) => {
+        setSpec(result)
+        setSelectedKey(result?.sections[0]?.key ?? null)
+      })
+      .catch(() => setSpec(null))
+      .finally(() => setLoading(false))
   }, [id])
 
   useEffect(() => {
@@ -86,6 +88,12 @@ export function SpecEditor() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedSection?.content])
+
+  function handleTogglePublished(published: boolean) {
+    if (!id || !spec) return
+    setSpec({ ...spec, published })
+    updateSpec(id, { published })
+  }
 
   function selectSection(key: string) {
     skipContentSave.current = true
@@ -189,6 +197,25 @@ export function SpecEditor() {
           placeholder="한 줄 문제 정의"
           className="rounded-md border border-slate-300 px-3 py-1.5 text-sm text-slate-600 focus:border-slate-400 focus:outline-none"
         />
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="published"
+            checked={spec.published}
+            onChange={(e) => handleTogglePublished(e.target.checked)}
+          />
+          <label htmlFor="published" className="text-sm text-slate-700">
+            커뮤니티에 공개하기
+          </label>
+          {spec.published && (
+            <span className="text-xs text-slate-500">
+              누구나 이 링크로 볼 수 있습니다 ·{' '}
+              <Link to={`/community/${id}`} className="text-primary-600 hover:underline">
+                공개 페이지 보기
+              </Link>
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="mb-6 flex flex-wrap items-center gap-2 rounded-md border border-slate-200 bg-slate-50 p-2">

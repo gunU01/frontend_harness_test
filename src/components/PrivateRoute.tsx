@@ -1,5 +1,6 @@
 import { Navigate, Outlet } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { AppHeader } from './AppHeader'
 
 export function PrivateRoute() {
   const { user, loading } = useAuth()
@@ -16,5 +17,10 @@ export function PrivateRoute() {
     return <Navigate to="/signin" replace />
   }
 
-  return <Outlet />
+  return (
+    <>
+      <AppHeader />
+      <Outlet />
+    </>
+  )
 }

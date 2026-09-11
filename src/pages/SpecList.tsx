@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { createSpec, listSpecs } from '../services/specs'
+import { listSpecs } from '../services/specs'
 import type { Spec, SpecStatus } from '../services/specs'
-import { getOrCreateConfig } from '../services/config'
-import type { DocTemplate } from '../lib/defaultTemplates'
 
 const statusStyles: Record<SpecStatus, string> = {
   draft: 'bg-slate-100 text-slate-600',
@@ -20,14 +18,8 @@ const statusLabels: Record<SpecStatus, string> = {
 
 export function SpecList() {
   const { user } = useAuth()
-  const navigate = useNavigate()
   const [specs, setSpecs] = useState<Spec[]>([])
   const [loading, setLoading] = useState(true)
-  const [creating, setCreating] = useState(false)
-  const [newTitle, setNewTitle] = useState('')
-  const [newOneLiner, setNewOneLiner] = useState('')
-  const [templates, setTemplates] = useState<DocTemplate[]>([])
-  const [selectedTemplateId, setSelectedTemplateId] = useState('')
 
   useEffect(() => {
     if (!user) return
@@ -35,97 +27,19 @@ export function SpecList() {
       setSpecs(result)
       setLoading(false)
     })
-    getOrCreateConfig(user.uid).then((config) => {
-      setTemplates(config.templates)
-      setSelectedTemplateId(config.templates[0]?.id ?? '')
-    })
   }, [user])
-
-  async function handleCreate() {
-    if (!user || !newTitle.trim()) return
-    const selectedTemplate = templates.find((t) => t.id === selectedTemplateId) ?? templates[0]
-    if (!selectedTemplate) return
-    const id = await createSpec(user.uid, newTitle.trim(), newOneLiner.trim(), selectedTemplate)
-    navigate(`/specs/${id}`)
-  }
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-10">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-xl font-bold text-slate-900">스펙 목록</h1>
-        {!creating && (
-          <button
-            type="button"
-            onClick={() => setCreating(true)}
-            className="rounded-md bg-primary-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-600"
-          >
-            새 스펙 만들기
-          </button>
-        )}
+        <Link
+          to="/specs/new"
+          className="rounded-md bg-primary-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-600"
+        >
+          새 스펙 만들기
+        </Link>
       </div>
-
-      {creating && (
-        <div className="mb-8 flex flex-col gap-3 rounded-md border border-slate-200 p-4">
-          <div className="flex flex-col gap-1">
-            <label htmlFor="new-spec-doc-type" className="text-xs text-slate-500">
-              문서 타입
-            </label>
-            <select
-              id="new-spec-doc-type"
-              value={selectedTemplateId}
-              onChange={(e) => setSelectedTemplateId(e.target.value)}
-              className="rounded-md border border-slate-300 px-3 py-1.5 text-sm focus:border-slate-400 focus:outline-none"
-            >
-              {templates.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="flex flex-col gap-1">
-            <label htmlFor="new-spec-title" className="text-xs text-slate-500">
-              제목
-            </label>
-            <input
-              id="new-spec-title"
-              value={newTitle}
-              onChange={(e) => setNewTitle(e.target.value)}
-              placeholder="제목"
-              className="rounded-md border border-slate-300 px-3 py-1.5 text-sm focus:border-slate-400 focus:outline-none"
-            />
-          </div>
-          <div className="flex flex-col gap-1">
-            <label htmlFor="new-spec-one-liner" className="text-xs text-slate-500">
-              한 줄 문제 정의
-            </label>
-            <input
-              id="new-spec-one-liner"
-              value={newOneLiner}
-              onChange={(e) => setNewOneLiner(e.target.value)}
-              placeholder="한 줄 문제 정의"
-              className="rounded-md border border-slate-300 px-3 py-1.5 text-sm focus:border-slate-400 focus:outline-none"
-            />
-          </div>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={handleCreate}
-              disabled={templates.length === 0}
-              className="rounded-md bg-primary-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-600 disabled:opacity-50"
-            >
-              만들기
-            </button>
-            <button
-              type="button"
-              onClick={() => setCreating(false)}
-              className="rounded-md border border-slate-300 px-3 py-1.5 text-sm text-slate-600"
-            >
-              취소
-            </button>
-          </div>
-        </div>
-      )}
 
       {loading ? (
         <p className="text-slate-500">불러오는 중...</p>
