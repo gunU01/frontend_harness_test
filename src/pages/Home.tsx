@@ -10,7 +10,7 @@ export function Home() {
       <p className="text-slate-500">AI와 함께 PRD를 씁니다.</p>
       <Link
         to={user ? '/specs' : '/signin'}
-        className="rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700"
+        className="rounded-md bg-primary-500 px-4 py-2 text-sm font-medium text-white hover:bg-primary-600"
       >
         {user ? '스펙 목록으로' : '시작하기'}
       </Link>

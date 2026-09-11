@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { createSpec, listSpecs } from '../services/specs'
 import type { Spec, SpecStatus } from '../services/specs'
 import { getOrCreateConfig } from '../services/config'
+import type { DocTemplate } from '../lib/defaultTemplates'
 
 const statusStyles: Record<SpecStatus, string> = {
   draft: 'bg-slate-100 text-slate-600',
@@ -25,6 +26,8 @@ export function SpecList() {
   const [creating, setCreating] = useState(false)
   const [newTitle, setNewTitle] = useState('')
   const [newOneLiner, setNewOneLiner] = useState('')
+  const [templates, setTemplates] = useState<DocTemplate[]>([])
+  const [selectedTemplateId, setSelectedTemplateId] = useState('')
 
   useEffect(() => {
     if (!user) return
@@ -32,12 +35,17 @@ export function SpecList() {
       setSpecs(result)
       setLoading(false)
     })
+    getOrCreateConfig(user.uid).then((config) => {
+      setTemplates(config.templates)
+      setSelectedTemplateId(config.templates[0]?.id ?? '')
+    })
   }, [user])
 
   async function handleCreate() {
     if (!user || !newTitle.trim()) return
-    const config = await getOrCreateConfig(user.uid)
-    const id = await createSpec(user.uid, newTitle.trim(), newOneLiner.trim(), config.template)
+    const selectedTemplate = templates.find((t) => t.id === selectedTemplateId) ?? templates[0]
+    if (!selectedTemplate) return
+    const id = await createSpec(user.uid, newTitle.trim(), newOneLiner.trim(), selectedTemplate)
     navigate(`/specs/${id}`)
   }
 
@@ -49,7 +57,7 @@ export function SpecList() {
           <button
             type="button"
             onClick={() => setCreating(true)}
-            className="rounded-md bg-primary-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-700"
+            className="rounded-md bg-primary-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-600"
           >
             새 스펙 만들기
           </button>
@@ -58,6 +66,23 @@ export function SpecList() {
 
       {creating && (
         <div className="mb-8 flex flex-col gap-3 rounded-md border border-slate-200 p-4">
+          <div className="flex flex-col gap-1">
+            <label htmlFor="new-spec-doc-type" className="text-xs text-slate-500">
+              문서 타입
+            </label>
+            <select
+              id="new-spec-doc-type"
+              value={selectedTemplateId}
+              onChange={(e) => setSelectedTemplateId(e.target.value)}
+              className="rounded-md border border-slate-300 px-3 py-1.5 text-sm focus:border-slate-400 focus:outline-none"
+            >
+              {templates.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name}
+                </option>
+              ))}
+            </select>
+          </div>
           <div className="flex flex-col gap-1">
             <label htmlFor="new-spec-title" className="text-xs text-slate-500">
               제목
@@ -86,7 +111,8 @@ export function SpecList() {
             <button
               type="button"
               onClick={handleCreate}
-              className="rounded-md bg-primary-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-700"
+              disabled={templates.length === 0}
+              className="rounded-md bg-primary-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-600 disabled:opacity-50"
             >
               만들기
             </button>
@@ -113,7 +139,7 @@ export function SpecList() {
               to={`/specs/${spec.id}`}
               className="rounded-lg border border-slate-200 p-4 transition-shadow hover:border-slate-300 hover:shadow-sm"
             >
-              <div className="mb-2 flex items-center justify-between gap-2">
+              <div className="mb-1 flex items-center justify-between gap-2">
                 <h2 className="font-medium text-slate-900">{spec.title}</h2>
                 <span
                   className={`inline-flex shrink-0 items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium ${statusStyles[spec.status]}`}
@@ -121,6 +147,7 @@ export function SpecList() {
                   {statusLabels[spec.status]}
                 </span>
               </div>
+              <p className="mb-1 text-xs text-slate-500">{spec.docType}</p>
               <p className="text-sm text-slate-500">{spec.oneLiner}</p>
             </Link>
           ))}

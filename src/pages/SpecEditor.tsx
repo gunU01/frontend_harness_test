@@ -196,7 +196,7 @@ export function SpecEditor() {
           type="button"
           onClick={handleGenerateDraft}
           disabled={busy !== null}
-          className="rounded-md bg-primary-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
+          className="rounded-md bg-primary-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-600 disabled:opacity-50"
         >
           {busy === 'draft' ? '생성 중...' : '초안 생성'}
         </button>

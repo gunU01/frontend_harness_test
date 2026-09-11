@@ -1,10 +1,10 @@
 import { doc, getDoc, setDoc } from 'firebase/firestore'
 import { db } from '../firebase'
-import type { TemplateSection } from '../lib/defaultTemplate'
-import { defaultTemplate } from '../lib/defaultTemplate'
+import type { DocTemplate } from '../lib/defaultTemplates'
+import { defaultTemplates } from '../lib/defaultTemplates'
 
 export interface UserConfig {
-  template: TemplateSection[]
+  templates: DocTemplate[]
   productContext: string
   glossary: string
 }
@@ -14,11 +14,12 @@ export async function getOrCreateConfig(uid: string): Promise<UserConfig> {
   const snap = await getDoc(ref)
 
   if (snap.exists()) {
-    return snap.data() as UserConfig
+    const data = snap.data() as UserConfig
+    return data.templates ? data : { ...data, templates: defaultTemplates }
   }
 
   const initial: UserConfig = {
-    template: defaultTemplate,
+    templates: defaultTemplates,
     productContext: '',
     glossary: '',
   }

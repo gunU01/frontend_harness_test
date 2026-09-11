@@ -4,7 +4,13 @@ export interface TemplateSection {
   hint: string
 }
 
-export const defaultTemplate: TemplateSection[] = [
+export interface DocTemplate {
+  id: string
+  name: string
+  sections: TemplateSection[]
+}
+
+const prdSections: TemplateSection[] = [
   {
     key: 'problem',
     title: '문제',
@@ -40,4 +46,37 @@ export const defaultTemplate: TemplateSection[] = [
     title: '출시 계획',
     hint: "단계별 공개 범위, 되돌리는 방법, 판단 시점. 간단한 건 '한 번에 전체 공개'라고만 써도 됨.",
   },
+]
+
+const meetingNotesSections: TemplateSection[] = [
+  {
+    key: 'purpose',
+    title: '목적',
+    hint: '이 회의를 왜 하는지 한 문장. 안건이 여러 개면 가장 중요한 것 하나만.',
+  },
+  {
+    key: 'attendees',
+    title: '참석자',
+    hint: '이름과 역할. 의사결정권자가 누구인지 표시할 것.',
+  },
+  {
+    key: 'discussion',
+    title: '논의 내용',
+    hint: '오간 이야기를 시간순이 아니라 주제별로 정리. 결론이 아니라 어떤 의견이 나왔는지.',
+  },
+  {
+    key: 'decisions',
+    title: '결정 사항',
+    hint: '무엇을 하기로 했는지만. 왜 그렇게 결정했는지는 논의 내용에 이미 있으니 반복하지 말 것.',
+  },
+  {
+    key: 'action-items',
+    title: '액션 아이템',
+    hint: "담당자와 기한이 없는 액션 아이템은 아이템이 아니라 희망사항이다. 반드시 '누가 언제까지' 포함.",
+  },
+]
+
+export const defaultTemplates: DocTemplate[] = [
+  { id: 'prd', name: 'PRD', sections: prdSections },
+  { id: 'meeting-notes', name: '회의록', sections: meetingNotesSections },
 ]

@@ -12,13 +12,14 @@ import {
 } from 'firebase/firestore'
 import type { Timestamp } from 'firebase/firestore'
 import { db } from '../firebase'
-import type { TemplateSection } from '../lib/defaultTemplate'
+import type { DocTemplate } from '../lib/defaultTemplates'
 
 export type SpecStatus = 'draft' | 'review' | 'done'
 
 export interface SpecSection {
   key: string
   title: string
+  hint: string
   content: string
 }
 
@@ -29,6 +30,8 @@ export interface Spec {
   oneLiner: string
   status: SpecStatus
   sections: SpecSection[]
+  templateId: string
+  docType: string
   createdAt: Timestamp
   updatedAt: Timestamp
 }
@@ -37,11 +40,12 @@ export async function createSpec(
   uid: string,
   title: string,
   oneLiner: string,
-  template: TemplateSection[],
+  template: DocTemplate,
 ): Promise<string> {
-  const sections: SpecSection[] = template.map((section) => ({
+  const sections: SpecSection[] = template.sections.map((section) => ({
     key: section.key,
     title: section.title,
+    hint: section.hint,
     content: '',
   }))
 
@@ -51,6 +55,8 @@ export async function createSpec(
     oneLiner,
     status: 'draft' as SpecStatus,
     sections,
+    templateId: template.id,
+    docType: template.name,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   })
