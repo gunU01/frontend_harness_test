@@ -22,7 +22,13 @@ export function NewSpec() {
 
   async function handleCreate() {
     if (!user || !selectedTemplate || !title.trim()) return
-    const id = await createSpec(user.uid, title.trim(), oneLiner.trim(), selectedTemplate)
+    const id = await createSpec(
+      user.uid,
+      user.displayName ?? '익명',
+      title.trim(),
+      oneLiner.trim(),
+      selectedTemplate,
+    )
     navigate(`/specs/${id}`)
   }
 

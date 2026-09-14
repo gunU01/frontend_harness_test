@@ -23,9 +23,22 @@ export interface SpecSection {
   content: string
 }
 
+export interface SpecRisk {
+  id: string
+  text: string
+  resolved: boolean
+}
+
+export interface SpecStakeholder {
+  id: string
+  name: string
+  confirmed: boolean
+}
+
 export interface Spec {
   id: string
   uid: string
+  authorName: string
   title: string
   oneLiner: string
   status: SpecStatus
@@ -33,12 +46,15 @@ export interface Spec {
   templateId: string
   docType: string
   published: boolean
+  risks: SpecRisk[]
+  stakeholders: SpecStakeholder[]
   createdAt: Timestamp
   updatedAt: Timestamp
 }
 
 export async function createSpec(
   uid: string,
+  authorName: string,
   title: string,
   oneLiner: string,
   template: DocTemplate,
@@ -52,6 +68,7 @@ export async function createSpec(
 
   const ref = await addDoc(collection(db, 'specs'), {
     uid,
+    authorName,
     title,
     oneLiner,
     status: 'draft' as SpecStatus,
@@ -59,6 +76,8 @@ export async function createSpec(
     templateId: template.id,
     docType: template.name,
     published: false,
+    risks: [],
+    stakeholders: [],
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   })
@@ -66,23 +85,33 @@ export async function createSpec(
   return ref.id
 }
 
+function fillSpecDefaults(id: string, data: Record<string, unknown>): Spec {
+  return {
+    id,
+    ...data,
+    authorName: (data.authorName as string) ?? '익명',
+    risks: (data.risks as SpecRisk[]) ?? [],
+    stakeholders: (data.stakeholders as SpecStakeholder[]) ?? [],
+  } as Spec
+}
+
 export async function listSpecs(uid: string): Promise<Spec[]> {
   const q = query(collection(db, 'specs'), where('uid', '==', uid), orderBy('updatedAt', 'desc'))
   const snap = await getDocs(q)
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Spec)
+  return snap.docs.map((d) => fillSpecDefaults(d.id, d.data()))
 }
 
 export async function listPublishedSpecs(): Promise<Spec[]> {
   const q = query(collection(db, 'specs'), where('published', '==', true), orderBy('updatedAt', 'desc'))
   const snap = await getDocs(q)
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Spec)
+  return snap.docs.map((d) => fillSpecDefaults(d.id, d.data()))
 }
 
 export async function getSpec(specId: string): Promise<Spec | null> {
   const ref = doc(db, 'specs', specId)
   const snap = await getDoc(ref)
   if (!snap.exists()) return null
-  return { id: snap.id, ...snap.data() } as Spec
+  return fillSpecDefaults(snap.id, snap.data())
 }
 
 export async function updateSpec(specId: string, data: Partial<Spec>): Promise<void> {
