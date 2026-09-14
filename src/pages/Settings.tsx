@@ -6,7 +6,8 @@ import type { DocTemplate, TemplateSection } from '../lib/defaultTemplates'
 
 type SaveStatus = 'idle' | 'saving' | 'saved'
 
-function makeKey(title: string) {
+// 테스트(vitest)에서 직접 검증하기 위해서만 export — 동작은 그대로.
+export function makeKey(title: string) {
   const slug = title
     .trim()
     .toLowerCase()

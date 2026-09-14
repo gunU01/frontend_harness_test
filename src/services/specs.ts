@@ -85,7 +85,8 @@ export async function createSpec(
   return ref.id
 }
 
-function fillSpecDefaults(id: string, data: Record<string, unknown>): Spec {
+// 테스트(vitest)에서 직접 검증하기 위해서만 export — 동작은 그대로.
+export function fillSpecDefaults(id: string, data: Record<string, unknown>): Spec {
   return {
     id,
     ...data,

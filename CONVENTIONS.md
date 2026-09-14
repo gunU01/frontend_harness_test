@@ -20,6 +20,7 @@ src/
 - **named export만 사용**: `export function ComponentName() { ... }`. `export default`는 쓰지 않습니다 (한 번 리뷰에서 지적되어 전체 통일함).
 - 한 파일에 컴포넌트 하나. 파일명 = 컴포넌트명 (PascalCase).
 - Props가 없는 페이지 컴포넌트는 인자 없이 바로 훅을 씁니다 (`useAuth()`, `useState` 등) — props로 내려주지 않습니다.
+- **함수형 컴포넌트 원칙의 유일한 예외**: React 에러 바운더리(`static getDerivedStateFromError`/`componentDidCatch`)는 클래스 컴포넌트로만 만들 수 있어서 `src/components/ErrorBoundary.tsx`만 클래스 컴포넌트입니다. 다른 이유로 클래스 컴포넌트를 새로 만들지 마세요.
 
 ## 데이터 계층 (`services/`)
 
@@ -72,6 +73,12 @@ useEffect(() => {
 - 별도 백엔드 서버 없이 프론트엔드에서 Firestore/Auth를 직접 호출합니다. 권한은 `firestore.rules`의 `request.auth.uid` 검사로만 강제합니다.
 - Cloud Function은 기능별로 여러 개 만들지 않고, `mode` 파라미터로 분기하는 단일 `onCall` 함수(`functions/index.js`의 `generate`)로 유지합니다. 새 AI 동작이 필요해도 이 함수에 mode를 추가하는 쪽을 먼저 검토하세요.
 - 클라이언트에서 Functions를 호출하는 wrapper(`services/generate.ts`)는 응답 shape를 런타임에 검증하는 타입가드를 거친 뒤 반환합니다 (`isGenerateResult`/`parseGenerateResult` 패턴) — `as`로 그냥 캐스팅하지 않습니다.
+
+## 테스트 (Vitest 단위 테스트 vs E2E/rules)
+
+- `npm run test:unit`(Vitest)은 **순수/거의 순수 함수**만 대상으로 합니다: 입력 → 출력이 결정적이고 auth/Firestore/브라우저 상태가 필요 없는 함수(`toRelativeTime`, `fillSpecDefaults`, `parseDraft`, `makeKey` 같은 것들). 테스트하려는 함수가 원래 `export` 안 되어 있었다면, 동작은 바꾸지 않고 `export`만 추가해서 테스트합니다(`// 테스트(vitest)에서 직접 검증하기 위해서만 export` 주석을 남깁니다).
+- 로그인 상태, Firestore 실제 읽기/쓰기, 라우팅, 화면 렌더링/클릭이 필요한 시나리오는 계속 `npm run test:e2e`(Playwright)나 `npm run test:rules`(Firestore 보안 규칙)에 둡니다 — Vitest에 jsdom/React Testing Library를 새로 끌어들이지 않습니다.
+- 판단 기준: **엣지케이스가 있는 순수 함수 = unit test 추가**, **auth/Firestore/브라우저 상태가 하나라도 필요하면 = E2E/rules 유지**. 테스트 파일은 대상 파일과 같은 디렉터리에 `이름.test.ts`(또는 `.tsx`)로 둡니다(`vitest.config.ts`의 `include: ['src/**/*.test.ts', 'src/**/*.test.tsx']` 참고).
 
 ## 커밋 메시지
 

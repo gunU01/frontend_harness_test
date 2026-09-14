@@ -18,7 +18,8 @@ function useIsDesktop() {
   return isDesktop
 }
 
-function parseDraft(text: string): Record<string, string> {
+// 테스트(vitest)에서 직접 검증하기 위해서만 export — 동작은 그대로.
+export function parseDraft(text: string): Record<string, string> {
   const result: Record<string, string> = {}
   const parts = text.split(/^##\s+/m).filter(Boolean)
   for (const part of parts) {
