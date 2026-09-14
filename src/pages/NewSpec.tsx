@@ -1,15 +1,21 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { createSpec } from '../services/specs'
 import { getOrCreateConfig } from '../services/config'
 import type { DocTemplate } from '../lib/defaultTemplates'
 
+interface NewSpecLocationState {
+  incomingTemplate?: DocTemplate
+}
+
 export function NewSpec() {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+  const incomingTemplate = (location.state as NewSpecLocationState | null)?.incomingTemplate ?? null
   const [templates, setTemplates] = useState<DocTemplate[]>([])
-  const [selectedTemplate, setSelectedTemplate] = useState<DocTemplate | null>(null)
+  const [selectedTemplate, setSelectedTemplate] = useState<DocTemplate | null>(incomingTemplate)
   const [title, setTitle] = useState('')
   const [oneLiner, setOneLiner] = useState('')
 

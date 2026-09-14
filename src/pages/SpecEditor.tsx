@@ -38,11 +38,17 @@ export function SpecEditor() {
   const [selectedKey, setSelectedKey] = useState<string | null>(null)
   const [busy, setBusy] = useState<'draft' | 'section' | 'critique' | null>(null)
   const [questions, setQuestions] = useState<string[] | null>(null)
+  const [newRiskText, setNewRiskText] = useState('')
+  const [newStakeholderName, setNewStakeholderName] = useState('')
 
   const titleTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const contentTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const risksTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const stakeholdersTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const skipTitleSave = useRef(true)
   const skipContentSave = useRef(true)
+  const skipRisksSave = useRef(true)
+  const skipStakeholdersSave = useRef(true)
 
   useEffect(() => {
     if (!id) return
@@ -88,6 +94,38 @@ export function SpecEditor() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedSection?.content])
+
+  useEffect(() => {
+    if (!spec || !id) return
+    if (skipRisksSave.current) {
+      skipRisksSave.current = false
+      return
+    }
+    if (risksTimer.current) clearTimeout(risksTimer.current)
+    risksTimer.current = setTimeout(() => {
+      updateSpec(id, { risks: spec.risks })
+    }, 2000)
+    return () => {
+      if (risksTimer.current) clearTimeout(risksTimer.current)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [spec?.risks])
+
+  useEffect(() => {
+    if (!spec || !id) return
+    if (skipStakeholdersSave.current) {
+      skipStakeholdersSave.current = false
+      return
+    }
+    if (stakeholdersTimer.current) clearTimeout(stakeholdersTimer.current)
+    stakeholdersTimer.current = setTimeout(() => {
+      updateSpec(id, { stakeholders: spec.stakeholders })
+    }, 2000)
+    return () => {
+      if (stakeholdersTimer.current) clearTimeout(stakeholdersTimer.current)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [spec?.stakeholders])
 
   function handleTogglePublished(published: boolean) {
     if (!id || !spec) return
@@ -157,6 +195,66 @@ export function SpecEditor() {
     }
   }
 
+  function toggleRisk(riskId: string, resolved: boolean) {
+    setSpec((prev) => {
+      if (!prev) return prev
+      return { ...prev, risks: prev.risks.map((r) => (r.id === riskId ? { ...r, resolved } : r)) }
+    })
+  }
+
+  function deleteRisk(riskId: string) {
+    setSpec((prev) => {
+      if (!prev) return prev
+      return { ...prev, risks: prev.risks.filter((r) => r.id !== riskId) }
+    })
+  }
+
+  function addRisk() {
+    const text = newRiskText.trim()
+    if (!text) return
+    setSpec((prev) => {
+      if (!prev) return prev
+      return { ...prev, risks: [...prev.risks, { id: crypto.randomUUID(), text, resolved: false }] }
+    })
+    setNewRiskText('')
+  }
+
+  function addQuestionsToRisks() {
+    if (!id || !spec || !questions) return
+    const nextRisks = [...spec.risks, ...questions.map((text) => ({ id: crypto.randomUUID(), text, resolved: false }))]
+    skipRisksSave.current = true
+    setSpec({ ...spec, risks: nextRisks })
+    updateSpec(id, { risks: nextRisks })
+    setQuestions(null)
+  }
+
+  function toggleStakeholder(stakeholderId: string, confirmed: boolean) {
+    setSpec((prev) => {
+      if (!prev) return prev
+      return {
+        ...prev,
+        stakeholders: prev.stakeholders.map((s) => (s.id === stakeholderId ? { ...s, confirmed } : s)),
+      }
+    })
+  }
+
+  function deleteStakeholder(stakeholderId: string) {
+    setSpec((prev) => {
+      if (!prev) return prev
+      return { ...prev, stakeholders: prev.stakeholders.filter((s) => s.id !== stakeholderId) }
+    })
+  }
+
+  function addStakeholder() {
+    const name = newStakeholderName.trim()
+    if (!name) return
+    setSpec((prev) => {
+      if (!prev) return prev
+      return { ...prev, stakeholders: [...prev.stakeholders, { id: crypto.randomUUID(), name, confirmed: false }] }
+    })
+    setNewStakeholderName('')
+  }
+
   if (loading) {
     return <main className="mx-auto max-w-3xl px-4 py-10 text-slate-500">불러오는 중...</main>
   }
@@ -178,6 +276,34 @@ export function SpecEditor() {
               <p className="whitespace-pre-wrap text-sm text-slate-600">{section.content || '(빈 섹션)'}</p>
             </div>
           ))}
+          <div>
+            <h2 className="mb-1 font-semibold text-slate-800">가정/리스크 트래커</h2>
+            {spec.risks.length === 0 ? (
+              <p className="text-sm text-slate-400">아직 등록된 리스크가 없습니다.</p>
+            ) : (
+              <ul className="flex flex-col gap-1 text-sm text-slate-600">
+                {spec.risks.map((risk) => (
+                  <li key={risk.id}>
+                    {risk.resolved ? '✅' : '⬜'} {risk.text}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <div>
+            <h2 className="mb-1 font-semibold text-slate-800">이해관계자 확인 체크리스트</h2>
+            {spec.stakeholders.length === 0 ? (
+              <p className="text-sm text-slate-400">아직 등록된 이해관계자가 없습니다.</p>
+            ) : (
+              <ul className="flex flex-col gap-1 text-sm text-slate-600">
+                {spec.stakeholders.map((person) => (
+                  <li key={person.id}>
+                    {person.confirmed ? '✅' : '⬜'} {person.name}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </div>
       </main>
     )
@@ -249,9 +375,19 @@ export function SpecEditor() {
         <div className="mb-4 rounded-md border border-amber-200 bg-amber-50 p-4">
           <div className="mb-2 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-amber-800">빈틈 지적</h2>
-            <button type="button" onClick={() => setQuestions(null)} className="text-xs text-amber-700">
-              닫기
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={addQuestionsToRisks}
+                disabled={questions === null}
+                className="text-xs font-medium text-amber-700 hover:underline disabled:opacity-40"
+              >
+                빈틈 지적에서 가져오기
+              </button>
+              <button type="button" onClick={() => setQuestions(null)} className="text-xs text-amber-700">
+                닫기
+              </button>
+            </div>
           </div>
           <ul className="list-inside list-disc text-sm text-amber-800">
             {questions.map((q, i) => (
@@ -287,6 +423,122 @@ export function SpecEditor() {
           rows={20}
           className="min-w-0 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none"
         />
+      </div>
+
+      <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2">
+        <section className="rounded-lg border border-slate-200 p-4">
+          <h2 className="mb-3 text-sm font-semibold text-slate-800">가정/리스크 트래커</h2>
+          <ul className="mb-3 flex flex-col gap-2">
+            {spec.risks.length === 0 && <li className="text-sm text-slate-400">아직 등록된 리스크가 없습니다.</li>}
+            {spec.risks.map((risk) => (
+              <li key={risk.id} className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id={`risk-${risk.id}`}
+                  checked={risk.resolved}
+                  onChange={(e) => toggleRisk(risk.id, e.target.checked)}
+                />
+                <label
+                  htmlFor={`risk-${risk.id}`}
+                  className={`flex-1 text-sm ${risk.resolved ? 'text-slate-400 line-through' : 'text-slate-700'}`}
+                >
+                  {risk.text}
+                </label>
+                <button
+                  type="button"
+                  onClick={() => deleteRisk(risk.id)}
+                  aria-label="리스크 삭제"
+                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-xs text-red-600 hover:bg-red-50"
+                >
+                  ✕
+                </button>
+              </li>
+            ))}
+          </ul>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault()
+              addRisk()
+            }}
+            className="flex gap-2"
+          >
+            <label htmlFor="new-risk" className="sr-only">
+              새 가정/리스크 내용
+            </label>
+            <input
+              id="new-risk"
+              value={newRiskText}
+              onChange={(e) => setNewRiskText(e.target.value)}
+              placeholder="새 가정/리스크 입력"
+              className="flex-1 rounded-md border border-slate-300 px-3 py-1.5 text-sm focus:border-slate-400 focus:outline-none"
+            />
+            <button
+              type="submit"
+              disabled={!newRiskText.trim()}
+              className="rounded-md bg-primary-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-600 disabled:opacity-50"
+            >
+              추가
+            </button>
+          </form>
+        </section>
+
+        <section className="rounded-lg border border-slate-200 p-4">
+          <h2 className="mb-3 text-sm font-semibold text-slate-800">이해관계자 확인 체크리스트</h2>
+          <ul className="mb-3 flex flex-col gap-2">
+            {spec.stakeholders.length === 0 && (
+              <li className="text-sm text-slate-400">아직 등록된 이해관계자가 없습니다.</li>
+            )}
+            {spec.stakeholders.map((person) => (
+              <li key={person.id} className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id={`stakeholder-${person.id}`}
+                  checked={person.confirmed}
+                  onChange={(e) => toggleStakeholder(person.id, e.target.checked)}
+                />
+                <label
+                  htmlFor={`stakeholder-${person.id}`}
+                  className={`flex-1 text-sm ${person.confirmed ? 'text-slate-400 line-through' : 'text-slate-700'}`}
+                >
+                  {person.name}
+                </label>
+                <button
+                  type="button"
+                  onClick={() => deleteStakeholder(person.id)}
+                  aria-label="이해관계자 삭제"
+                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-xs text-red-600 hover:bg-red-50"
+                >
+                  ✕
+                </button>
+              </li>
+            ))}
+          </ul>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault()
+              addStakeholder()
+            }}
+            className="flex gap-2"
+          >
+            <label htmlFor="new-stakeholder" className="sr-only">
+              새 이해관계자 이름
+            </label>
+            <input
+              id="new-stakeholder"
+              value={newStakeholderName}
+              onChange={(e) => setNewStakeholderName(e.target.value)}
+              placeholder="새 이해관계자 이름"
+              className="flex-1 rounded-md border border-slate-300 px-3 py-1.5 text-sm focus:border-slate-400 focus:outline-none"
+            />
+            <button
+              type="submit"
+              disabled={!newStakeholderName.trim()}
+              className="rounded-md bg-primary-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-600 disabled:opacity-50"
+            >
+              추가
+            </button>
+          </form>
+        </section>
       </div>
     </main>
   )
