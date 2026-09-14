@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { listSpecs } from '../services/specs'
 import type { Spec, SpecStatus } from '../services/specs'
+import { toRelativeTime } from '../lib/relativeTime'
 
 const statusStyles: Record<SpecStatus, string> = {
   draft: 'bg-slate-100 text-slate-600',
@@ -62,7 +63,8 @@ export function SpecList() {
                 </span>
               </div>
               <p className="mb-1 text-xs text-slate-500">{spec.docType}</p>
-              <p className="text-sm text-slate-500">{spec.oneLiner}</p>
+              <p className="mb-1 text-sm text-slate-500">{spec.oneLiner}</p>
+              <p className="text-xs text-slate-400">{toRelativeTime(spec.updatedAt)}</p>
             </Link>
           ))}
         </div>
