@@ -4,12 +4,13 @@
 
 ## 0. 정적 검증 (자동, 이미 하네스가 매 커밋마다 함)
 
-- [ ] `npm run lint` — 통과
-- [ ] `npx tsc --noEmit` — 통과 (PostToolUse 훅이 매 Edit/Write마다 이미 실행함)
-- [ ] `npm run build` — 통과, `dist/` 생성 확인
+- [x] `npm run lint` — 통과 (PostToolUse 훅이 매 Edit/Write마다 실행 + `.github/workflows/deploy-pages.yml`의 `build` job이 배포 전마다 실행 → 실패하면 배포 자체가 안 됨)
+- [x] `npx tsc --noEmit` — 통과 (PostToolUse 훅이 매 Edit/Write마다 실행, `npm run build`의 `tsc -b` 단계에도 포함되어 CI에서 한 번 더 확인됨)
+- [x] `npm run test:rules` — 통과 (Firestore rules 자동화 테스트, CI `build` job에 포함 — `actions/setup-java`로 JDK 설치 후 실행)
+- [ ] `npm run build` — 통과, `dist/` 생성 확인 (CI에서도 실행되지만 로컬에서 한 번 더 확인하고 싶으면 수동으로)
 - [ ] `node --check functions/index.js` — Functions 코드 문법 오류 없음
 
-이 네 개는 코드만으로 확인 가능해서 이미 자동화되어 있습니다. 아래부터는 실제 로그인/DB가 필요합니다.
+lint/test:rules는 이제 로컬 훅뿐 아니라 CI(`build` job)에서도 실패하면 배포를 막습니다. `npm run test:e2e`(Playwright)는 실행 시간이 있고 이 브랜치 CI에서의 안정성이 아직 검증되지 않아 의도적으로 CI에는 넣지 않았습니다 — 로컬/별도 세션에서 수동 실행하는 자동화로 남겨둡니다. 아래부터는 실제 로그인/DB가 필요합니다.
 
 ## P0 — 핵심 플로우 (이거 하나라도 깨지면 도구 자체가 무의미)
 
