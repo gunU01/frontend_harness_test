@@ -37,7 +37,7 @@ export function SignIn() {
         <button
           type="button"
           onClick={handleSignIn}
-          className="w-full rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700"
+          className="w-full rounded-md bg-primary-500 px-4 py-2 text-sm font-medium text-white hover:bg-primary-600"
         >
           Google로 로그인
         </button>
