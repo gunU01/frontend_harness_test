@@ -33,4 +33,61 @@ export async function signInAsFreshUser(page: Page, name = 'E2E 테스터'): Pro
   return { email, name }
 }
 
+// 관리자 지정 테스트용 헬퍼.
+//
+// admins/{uid}는 firestore.rules가 쓰기를 완전히 막아둔 컬렉션이다(관리자 본인도 못 씀 —
+// PLANNING.md 6단계, firestore.rules.test.js의 "CRITICAL" 테스트 참고) — 그래서 앱의 클라이언트
+// SDK 경로로는 이 문서를 만들 방법이 원천적으로 없다. firestore.rules.test.js는
+// `@firebase/rules-unit-testing`의 `withSecurityRulesDisabled`로 규칙을 우회해 시드하지만,
+// 그건 별도의 Node 테스트 러너(`node --test`)용이라 이 Playwright e2e 스펙에서 재사용할 수
+// 없다. 대신 이 하네스가 이미 `npm run test:e2e`에서 띄우는 Auth+Firestore 에뮬레이터에 직접
+// REST로 접근한다:
+// 1) Auth 에뮬레이터의 accounts:query API(아래 findUidByEmail 참고)로 이메일 -> uid를 찾고
+// 2) Firestore 에뮬레이터에 `Authorization: Bearer owner` 헤더로 문서를 쓴다 — 이 토큰은
+//    Admin SDK가 실제 서비스 계정 자격 증명 없이 에뮬레이터에 붙을 때 기본으로 보내는 바로 그
+//    값이고, Firestore 에뮬레이터는 이 토큰을 "관리자/소유자" 요청으로 인식해 Security Rules를
+//    완전히 우회한다 — Admin SDK/CLI가 항상 규칙을 우회한다는 공식 동작과 같은 성격이다.
+// 프로덕션 앱 코드에는 이 경로가 전혀 없다(REST 우회는 로컬 에뮬레이터에서만 가능) — 이 테스트
+// 전용 헬퍼일 뿐, 실제 관리자 지정은 여전히 README에 적힌 대로 Firebase 콘솔에서만 가능하다.
+const EMULATOR_PROJECT_ID = 'demo-settle-up-e2e-test' // firebase.json 포트 + package.json test:e2e의 --project와 동일
+const AUTH_EMULATOR_ORIGIN = 'http://127.0.0.1:9099'
+const FIRESTORE_EMULATOR_ORIGIN = 'http://127.0.0.1:8080'
+
+// `/emulator/v1/projects/{id}/accounts`는 emulator 전용 관리 API 중 계정 "전체 삭제"(DELETE)만
+// 지원하고 목록 조회(GET)는 없다(404 Method Not Allowed로 실측 확인). 대신 실제 Identity
+// Platform REST API인 `accounts:query`(admin 전용 프로젝트 스코프 조회)를 `Authorization: Bearer
+// owner`로 호출하면 그 프로젝트의 전체 계정을 인증 없이 나열해준다 — 이것도 위 admins 문서
+// 시드와 같은 "Bearer owner = 에뮬레이터 관리자 권한" 규칙을 그대로 따른다.
+async function findUidByEmail(email: string): Promise<string> {
+  const res = await fetch(
+    `${AUTH_EMULATOR_ORIGIN}/identitytoolkit.googleapis.com/v1/projects/${EMULATOR_PROJECT_ID}/accounts:query`,
+    {
+      method: 'POST',
+      headers: { Authorization: 'Bearer owner', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ returnUserInfo: true }),
+    },
+  )
+  if (!res.ok) {
+    throw new Error(`Auth 에뮬레이터 계정 조회 실패: ${res.status} ${await res.text()}`)
+  }
+  const data = (await res.json()) as { userInfo?: { localId: string; email?: string }[] }
+  const account = data.userInfo?.find((u) => u.email === email)
+  if (!account) throw new Error(`Auth 에뮬레이터에서 ${email} 계정을 찾지 못함`)
+  return account.localId
+}
+
+/** 주어진 이메일의 (이미 로그인된) 테스트 유저를 admins/{uid} 문서를 심어 관리자로 만든다. */
+export async function makeUserAdmin(email: string): Promise<void> {
+  const uid = await findUidByEmail(email)
+  const url = `${FIRESTORE_EMULATOR_ORIGIN}/v1/projects/${EMULATOR_PROJECT_ID}/databases/(default)/documents/admins/${uid}`
+  const res = await fetch(url, {
+    method: 'PATCH',
+    headers: { Authorization: 'Bearer owner', 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fields: {} }),
+  })
+  if (!res.ok) {
+    throw new Error(`admins/${uid} 시드 실패: ${res.status} ${await res.text()}`)
+  }
+}
+
 export { expect, test }

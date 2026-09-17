@@ -1,7 +1,8 @@
-// VERIFICATION.md P1-e: 대시보드/퍼널/리텐션이 실제 Firestore 데이터로 렌더링되는지.
+// VERIFICATION.md P1-e/P1-f: 대시보드/퍼널/리텐션이 실제 Firestore 데이터로 렌더링되는지,
+// 그리고 관리자용 "전체 사용자" 토글(P1-f)이 관리자에게만 보이고 크래시 없이 동작하는지.
 // 초안 생성 등 AI(Functions generate) 호출 이벤트는 API 키가 없어 여기서 만들 수 없으므로,
 // AI 호출 없이 발생 가능한 이벤트(spec_created, published_toggled)만으로 검증한다.
-import { expect, signInAsFreshUser, test } from './fixtures'
+import { expect, makeUserAdmin, signInAsFreshUser, test } from './fixtures'
 import { createSpecViaUI, waitForDebouncedSave } from './helpers'
 
 test('스펙을 만들고 발행하면 분석 페이지의 대시보드/퍼널/리텐션에 반영된다', async ({ page }) => {
@@ -47,4 +48,35 @@ test('로그인 직후에는 아직 활동이 없어 대시보드가 빈 상태�
   await expect(page.getByRole('button', { name: '대시보드' })).toBeVisible()
   await expect(page.getByRole('button', { name: '리텐션' }).click()).resolves.toBeUndefined()
   await expect(page.getByText('아직 작성한 스펙이 없습니다.')).toBeVisible()
+})
+
+test('관리자는 전체 사용자 토글을 볼 수 있고, 전환해도 크래시 없이 렌더링된다', async ({ page }) => {
+  const { email } = await signInAsFreshUser(page)
+  // admins/{uid} 문서는 클라이언트 SDK로는 쓸 수 없어(firestore.rules가 완전 차단) 에뮬레이터에
+  // 직접 REST로 시드한다 — fixtures.ts의 makeUserAdmin 주석 참고.
+  await makeUserAdmin(email)
+
+  await page.getByRole('link', { name: '분석' }).click()
+  await expect(page).toHaveURL(/\/analytics$/)
+  await expect(page.getByRole('heading', { name: '내 활동 분석' })).toBeVisible()
+
+  const allUsersToggle = page.getByRole('button', { name: '전체 사용자' })
+  await expect(allUsersToggle).toBeVisible()
+  await expect(page.getByRole('button', { name: '내 데이터' })).toBeVisible()
+
+  await allUsersToggle.click()
+  // 다른 사용자의 활동 데이터가 실제로 있을 필요는 없다 — 이 관리자 계정 자신의 signed_in
+  // 이벤트 정도만 있는 작은/빈 데이터셋에서도 에러 바운더리 없이 렌더링되는지가 핵심이다.
+  await expect(page.getByRole('heading', { name: '내 활동 분석' })).toBeVisible()
+  await expect(page.getByRole('button', { name: '대시보드' })).toBeVisible()
+  await expect(page.getByText('문제가 발생했습니다')).not.toBeVisible()
+})
+
+test('관리자가 아닌 사용자에게는 전체 사용자 토글이 보이지 않는다', async ({ page }) => {
+  await signInAsFreshUser(page)
+  await page.getByRole('link', { name: '분석' }).click()
+  await expect(page).toHaveURL(/\/analytics$/)
+  await expect(page.getByRole('heading', { name: '내 활동 분석' })).toBeVisible()
+  await expect(page.getByRole('button', { name: '전체 사용자' })).not.toBeVisible()
+  await expect(page.getByRole('button', { name: '내 데이터' })).not.toBeVisible()
 })

@@ -1,19 +1,27 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
-import { listMyEvents } from '../services/analytics'
+import { isAdminUser, listAllEvents, listMyEvents } from '../services/analytics'
 import type { AnalyticsEvent } from '../services/analytics'
-import { listSpecs } from '../services/specs'
+import { listAllSpecsForAdmin, listSpecs } from '../services/specs'
 import type { Spec } from '../services/specs'
 import { BarChart } from '../components/charts/BarChart'
 import { TrendChart } from '../components/charts/TrendChart'
 import { Heatmap } from '../components/charts/Heatmap'
 
 type Tab = 'dashboard' | 'funnel' | 'retention'
+type ViewMode = 'mine' | 'all'
 
 const TABS: { key: Tab; label: string }[] = [
   { key: 'dashboard', label: '대시보드' },
   { key: 'funnel', label: '퍼널' },
   { key: 'retention', label: '리텐션' },
+]
+
+// 관리자에게만 보이는 "내 데이터 / 전체 사용자" 전환 — TABS와 완전히 같은 밑줄 탭
+// 시각 패턴을 재사용한다 (새 토글 스타일을 만들지 않는다).
+const VIEW_MODES: { key: ViewMode; label: string }[] = [
+  { key: 'mine', label: '내 데이터' },
+  { key: 'all', label: '전체 사용자' },
 ]
 
 // 이벤트 로그에 specId가 없어 "이 스펙의 생성 -> 발행"을 정확히 이어 붙일 수 없다.
@@ -68,6 +76,10 @@ export function Analytics() {
   const { user } = useAuth()
   const [tab, setTab] = useState<Tab>('dashboard')
 
+  // 관리자 판별: 확인이 끝나기 전에는 항상 false로 둔다 — 토글을 선제적으로 보여주지 않는다.
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [viewMode, setViewMode] = useState<ViewMode>('mine')
+
   const [events, setEvents] = useState<AnalyticsEvent[]>([])
   const [eventsLoading, setEventsLoading] = useState(true)
 
@@ -77,20 +89,30 @@ export function Analytics() {
 
   useEffect(() => {
     if (!user) return
-    const since = new Date(Date.now() - WINDOW_DAYS * MS_PER_DAY)
-    listMyEvents(user.uid, { since }).then((result) => {
-      setEvents(result)
-      setEventsLoading(false)
-    })
+    isAdminUser(user.uid).then(setIsAdmin)
   }, [user])
 
   useEffect(() => {
     if (!user) return
-    listSpecs(user.uid).then((result) => {
+    setEventsLoading(true)
+    const since = new Date(Date.now() - WINDOW_DAYS * MS_PER_DAY)
+    const request =
+      viewMode === 'all' ? listAllEvents({ since }) : listMyEvents(user.uid, { since })
+    request.then((result) => {
+      setEvents(result)
+      setEventsLoading(false)
+    })
+  }, [user, viewMode])
+
+  useEffect(() => {
+    if (!user) return
+    setSpecsLoading(true)
+    const request = viewMode === 'all' ? listAllSpecsForAdmin() : listSpecs(user.uid)
+    request.then((result) => {
       setSpecs(result)
       setSpecsLoading(false)
     })
-  }, [user])
+  }, [user, viewMode])
 
   // 대시보드: 최근 30일간 일별 이벤트 수 (빈 날짜도 0으로 채워 선이 끊기지 않게 함)
   const dailyCounts = useMemo(() => {
@@ -142,6 +164,26 @@ export function Analytics() {
     }
     return rates
   }, [funnelStages])
+
+  // "전체 사용자" 모드 전용: 이벤트엔 authorName이 없어 uid로만 집계할 수 있지만,
+  // 화면엔 uid를 그대로 노출하지 않는다 (커뮤니티 기능의 "이름은 노출, uid/이메일은 비노출"
+  // 원칙 재사용) — 같은 시점에 불러온 specs의 uid -> authorName으로 표시용 라벨만 만든다.
+  // 매칭되는 스펙이 없는 uid(아직 스펙을 안 만든 사용자 등)는 "알 수 없음"으로 대체한다.
+  const usersByActivity = useMemo(() => {
+    if (viewMode !== 'all') return []
+    const nameByUid = new Map<string, string>()
+    for (const spec of specs) {
+      if (!nameByUid.has(spec.uid)) nameByUid.set(spec.uid, spec.authorName)
+    }
+    const counts = new Map<string, number>()
+    for (const event of events) {
+      const label = nameByUid.get(event.uid) ?? '알 수 없음'
+      counts.set(label, (counts.get(label) ?? 0) + 1)
+    }
+    return Array.from(counts.entries())
+      .map(([label, value]) => ({ label, value }))
+      .sort((a, b) => b.value - a.value)
+  }, [events, specs, viewMode])
 
   const specDocTypes = useMemo(
     () => Array.from(new Set(specs.map((spec) => spec.docType))),
@@ -203,9 +245,31 @@ export function Analytics() {
       <div className="mb-6">
         <h1 className="text-xl font-bold text-slate-900">내 활동 분석</h1>
         <p className="text-sm text-slate-500">
-          다른 사용자 데이터는 보이지 않습니다 — 내 활동만 나에게 보이는 개인용 분석입니다.
+          {viewMode === 'all'
+            ? '관리자 권한으로 전체 사용자의 활동을 보고 있습니다.'
+            : '다른 사용자 데이터는 보이지 않습니다 — 내 활동만 나에게 보이는 개인용 분석입니다.'}
         </p>
       </div>
+
+      {isAdmin && (
+        <div className="mb-6 flex gap-2 border-b border-slate-200">
+          {VIEW_MODES.map((mode) => (
+            <button
+              key={mode.key}
+              type="button"
+              onClick={() => setViewMode(mode.key)}
+              aria-current={viewMode === mode.key ? 'page' : undefined}
+              className={
+                viewMode === mode.key
+                  ? 'border-b-2 border-primary-500 px-3 py-2 text-sm font-medium text-primary-600'
+                  : 'border-b-2 border-transparent px-3 py-2 text-sm text-slate-600 hover:text-slate-900'
+              }
+            >
+              {mode.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="mb-6 flex gap-2 border-b border-slate-200">
         {TABS.map((t) => (
@@ -246,6 +310,16 @@ export function Analytics() {
               </p>
               <BarChart data={countsByName} valueUnit="건" />
             </section>
+            {viewMode === 'all' && usersByActivity.length > 0 && (
+              <section>
+                <h2 className="mb-1 text-sm font-semibold text-slate-700">사용자별 활동</h2>
+                <p className="mb-3 text-xs text-slate-500">
+                  최근 {WINDOW_DAYS}일간 사용자별로 얼마나 활동했는지 보여줍니다. 표시 이름이
+                  없는 사용자는 "알 수 없음"으로 표시됩니다.
+                </p>
+                <BarChart data={usersByActivity} valueUnit="건" />
+              </section>
+            )}
           </div>
         ))}
 

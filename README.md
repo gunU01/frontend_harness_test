@@ -80,6 +80,7 @@ npm run dev
 3. `firebase functions:secrets:set ANTHROPIC_API_KEY`
 4. `firebase deploy` (Firestore rules + Functions + Hosting 실배포)
 5. `public/icon-192.png`, `public/icon-512.png` 추가 (manifest가 참조하지만 아직 실제 파일은 없음 — 아무 이미지나 넣어도 됩니다)
+6. **관리자 권한 부여** (`/analytics`의 "전체 사용자" 보기): `admins/{uid}` 컬렉션에 문서가 있으면 그 uid는 관리자입니다. `firestore.rules`가 이 컬렉션의 쓰기를 완전히 막아둬서(관리자 본인도 못 씀 — 자기 자신을 관리자로 승격시키는 경로를 원천 차단하기 위한 설계) 앱 화면이나 코드로는 절대 만들 수 없고, **Firebase 콘솔에서 직접 만드는 것만** 가능합니다: 콘솔 → Firestore Database → 데이터 탭 → `admins` 컬렉션 생성(없다면) → 문서 추가 → 문서 ID에 그 사용자의 uid를 정확히 입력(필드 내용은 비워둬도 됨) → 저장. 제거하려면 그 문서를 지우면 됩니다.
 
 ## GitHub Pages 프리뷰 배포
 
