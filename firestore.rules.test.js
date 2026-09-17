@@ -18,6 +18,7 @@ import {
 
 const OWNER_UID = 'owner-uid'
 const OTHER_UID = 'other-uid'
+const ADMIN_UID = 'admin-uid'
 
 let testEnv
 
@@ -180,6 +181,67 @@ describe('events/{eventId} append-only log rules', () => {
     const db = testEnv.authenticatedContext(OWNER_UID).firestore()
     await assertFails(db.collection('events').doc('event-4').update({ name: 'hacked' }))
     await assertFails(db.collection('events').doc('event-4').delete())
+  })
+})
+
+describe('admins/{uid} read-only, no client write path', () => {
+  it('allows an admin (has an admins/{uid} doc) to read another user\'s event', async () => {
+    await seed(async (db) => {
+      await db.collection('admins').doc(ADMIN_UID).set({})
+      await db.collection('events').doc('event-admin-1').set({ uid: OWNER_UID, name: 'spec_created', properties: {} })
+    })
+    const db = testEnv.authenticatedContext(ADMIN_UID).firestore()
+    await assertSucceeds(db.collection('events').doc('event-admin-1').get())
+  })
+
+  it('allows an admin (has an admins/{uid} doc) to read another user\'s private spec', async () => {
+    await seed(async (db) => {
+      await db.collection('admins').doc(ADMIN_UID).set({})
+      await db.collection('specs').doc('spec-admin-1').set({ uid: OWNER_UID, published: false })
+    })
+    const db = testEnv.authenticatedContext(ADMIN_UID).firestore()
+    await assertSucceeds(db.collection('specs').doc('spec-admin-1').get())
+  })
+
+  it('denies a non-admin (no admins/{uid} doc) from reading another user\'s event via the isAdmin() path', async () => {
+    await seed((db) => db.collection('events').doc('event-nonadmin-1').set({ uid: OWNER_UID, name: 'spec_created', properties: {} }))
+    const db = testEnv.authenticatedContext(OTHER_UID).firestore()
+    await assertFails(db.collection('events').doc('event-nonadmin-1').get())
+  })
+
+  it('denies a non-admin (no admins/{uid} doc) from reading another user\'s private spec via the isAdmin() path', async () => {
+    await seed((db) => db.collection('specs').doc('spec-nonadmin-1').set({ uid: OWNER_UID, published: false }))
+    const db = testEnv.authenticatedContext(OTHER_UID).firestore()
+    await assertFails(db.collection('specs').doc('spec-nonadmin-1').get())
+  })
+
+  it('CRITICAL: denies an admin from creating/updating/deleting their own admins/{uid} doc', async () => {
+    await seed((db) => db.collection('admins').doc(ADMIN_UID).set({}))
+    const db = testEnv.authenticatedContext(ADMIN_UID).firestore()
+    await assertFails(db.collection('admins').doc(ADMIN_UID).set({ note: 'self-promote' }))
+    await assertFails(db.collection('admins').doc(ADMIN_UID).update({ note: 'still nope' }))
+    await assertFails(db.collection('admins').doc(ADMIN_UID).delete())
+  })
+
+  it('CRITICAL: denies any user from creating/updating/deleting someone else\'s admins/{uid} doc', async () => {
+    await seed((db) => db.collection('admins').doc(ADMIN_UID).set({}))
+    const db = testEnv.authenticatedContext(OTHER_UID).firestore()
+    await assertFails(db.collection('admins').doc(OTHER_UID).set({}))
+    await assertFails(db.collection('admins').doc(ADMIN_UID).update({ note: 'hacked' }))
+    await assertFails(db.collection('admins').doc(ADMIN_UID).delete())
+  })
+
+  it('lets a user read their own admins/{uid} doc but not someone else\'s', async () => {
+    await seed((db) => db.collection('admins').doc(ADMIN_UID).set({}))
+    const db = testEnv.authenticatedContext(ADMIN_UID).firestore()
+    await assertSucceeds(db.collection('admins').doc(ADMIN_UID).get())
+    await assertFails(db.collection('admins').doc(OTHER_UID).get())
+  })
+
+  it('denies an unauthenticated read of any admins/{uid} doc', async () => {
+    await seed((db) => db.collection('admins').doc(ADMIN_UID).set({}))
+    const db = testEnv.unauthenticatedContext().firestore()
+    await assertFails(db.collection('admins').doc(ADMIN_UID).get())
   })
 })
 

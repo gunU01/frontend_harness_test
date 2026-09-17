@@ -4,13 +4,14 @@ import {
   doc,
   getDoc,
   getDocs,
+  limit as firestoreLimit,
   orderBy,
   query,
   serverTimestamp,
   updateDoc,
   where,
 } from 'firebase/firestore'
-import type { Timestamp } from 'firebase/firestore'
+import type { QueryConstraint, Timestamp } from 'firebase/firestore'
 import { db } from '../firebase'
 import type { DocTemplate } from '../lib/defaultTemplates'
 
@@ -104,6 +105,20 @@ export async function listSpecs(uid: string): Promise<Spec[]> {
 
 export async function listPublishedSpecs(): Promise<Spec[]> {
   const q = query(collection(db, 'specs'), where('published', '==', true), orderBy('updatedAt', 'desc'))
+  const snap = await getDocs(q)
+  return snap.docs.map((d) => fillSpecDefaults(d.id, d.data()))
+}
+
+// listPublishedSpecs/listSpecs와 동일한 shape이지만 uid 필터 없이 전체 specs를 조회한다.
+// firestore.rules상 isAdmin()인 호출자만 성공한다. updatedAt이 아닌 createdAt 내림차순으로
+// 정렬한 것은, 관리자 개요는 "최근 수정된 것"보다 "최근에 새로 만들어진 것"을 먼저 보는 편이
+// 전체 사용자 활동 파악에 더 유용하다고 판단했기 때문.
+export async function listAllSpecsForAdmin(opts?: { limit?: number }): Promise<Spec[]> {
+  const constraints: QueryConstraint[] = [orderBy('createdAt', 'desc')]
+  if (opts?.limit) {
+    constraints.push(firestoreLimit(opts.limit))
+  }
+  const q = query(collection(db, 'specs'), ...constraints)
   const snap = await getDocs(q)
   return snap.docs.map((d) => fillSpecDefaults(d.id, d.data()))
 }
