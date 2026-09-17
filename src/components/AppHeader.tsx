@@ -6,6 +6,7 @@ const navItems = [
   { to: '/specs', label: '스펙 목록' },
   { to: '/specs/new', label: '템플릿' },
   { to: '/community', label: '커뮤니티' },
+  { to: '/analytics', label: '분석' },
   { to: '/settings', label: '설정' },
 ]
 

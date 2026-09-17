@@ -13,6 +13,7 @@ const Community = lazy(() => import('./pages/Community').then((m) => ({ default:
 const CommunityDetail = lazy(() =>
   import('./pages/CommunityDetail').then((m) => ({ default: m.CommunityDetail }))
 )
+const Analytics = lazy(() => import('./pages/Analytics').then((m) => ({ default: m.Analytics })))
 
 export default function App() {
   return (
@@ -32,6 +33,7 @@ export default function App() {
             <Route path="/specs/new" element={<NewSpec />} />
             <Route path="/specs/:id" element={<SpecEditor />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/analytics" element={<Analytics />} />
           </Route>
         </Routes>
       </Suspense>

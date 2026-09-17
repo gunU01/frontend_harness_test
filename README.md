@@ -12,7 +12,7 @@
 
 ## 화면
 
-로그인 후 화면(`/specs`, `/specs/new`, `/specs/:id`, `/settings`)은 공통 헤더(`AppHeader`)로 이동합니다. `/`, `/signin`, `/community`, `/community/:id`는 헤더 없는 공개 화면입니다.
+로그인 후 화면(`/specs`, `/specs/new`, `/specs/:id`, `/settings`, `/analytics`)은 공통 헤더(`AppHeader`)로 이동합니다. `/`, `/signin`, `/community`, `/community/:id`는 헤더 없는 공개 화면입니다.
 
 - **홈** (`/`): 로그인 여부에 따라 시작하기/스펙 목록 버튼만 있는 랜딩
 - **설정** (`/settings`): 좌측에 내 문서 타입 목록(PRD, 회의록, ... — 추가·삭제), 우측에 선택된 타입의 섹션 편집(제목/hint, 추가·삭제·순서변경). 아래에 전체 문서 타입이 공유하는 제품 설명(`productContext`)·용어집(`glossary`)
@@ -21,6 +21,7 @@
 - **작성** (`/specs/:id`): 왼쪽 섹션 목록, 오른쪽 편집. 버튼 3개 — 초안 생성 / 이 섹션 다시 쓰기 / 빈틈 지적. "커뮤니티에 공개하기" 체크박스로 발행 여부 전환
 - **커뮤니티** (`/community`, 공개, 로그인 불필요): 발행된 스펙을 카드로 둘러보는 목록
 - **커뮤니티 상세** (`/community/:id`, 공개): 발행된 스펙 하나를 읽기 전용으로 표시. 작성자 정보는 노출하지 않음 (익명)
+- **분석** (`/analytics`): "내 활동 분석" — 본인 이벤트만 본인이 보는 개인용 대시보드/퍼널/리텐션 3탭. 다른 사용자 데이터는 보이지 않음
 
 ## 데이터 구조
 
@@ -31,9 +32,14 @@ config/{uid}
   glossary: string
 
 specs/{specId}
-  uid, title, oneLiner, status, templateId, docType, published
+  uid, authorName, title, oneLiner, status, templateId, docType, published
   sections: [{ key, title, hint, content }]
+  risks: [{ id, text, resolved }]
+  stakeholders: [{ id, name, confirmed }]
   createdAt, updatedAt
+
+events/{eventId}   # append-only, 본인만 생성/읽기 가능, 수정·삭제 전부 금지
+  uid, name, properties, timestamp
 ```
 
 `published`가 `true`면 `/community/:id`에서 로그인 없이 읽을 수 있습니다. `firestore.rules`가 `specs`의 읽기 조건을 "작성자 본인 또는 `published == true`"로 분기하고, 쓰기(생성/수정/삭제)는 여전히 작성자 본인만 가능합니다 — `config/{uid}`(제품 설명·용어집)는 이 변경과 무관하게 항상 비공개입니다. `published==true` 목록 조회에 필요한 복합 색인은 `firestore.indexes.json`에 정의되어 있습니다.
@@ -121,3 +127,13 @@ MVP 이후 첫 확장으로 "문서 타입 다양화"(PRD 외 회의록 등)를 
 - **작성자 이름 표시**: `PLANNING.md`에 남아있던 미해결 질문(익명 유지 vs 이름 노출)을 이름 노출로 결정. uid/이메일은 여전히 노출하지 않고 표시 이름만 스냅샷.
 - **커뮤니티 검색/필터**: 문서 타입 필터 + 텍스트 검색. 커뮤니티는 여러 사람 글이 쌓이는 공개 목록이라, "개인 스펙 목록엔 검색이 필요 없다"던 원래 결정(위 표 참고)과 전제가 다릅니다.
 - **Firestore rules 자동화 테스트**: `VERIFICATION.md`가 유일하게 이 하네스에서 바로 자동화 가능하다고 지목했던 영역 — `firebase emulators:exec` + `@firebase/rules-unit-testing`으로 공개/비공개 읽기·쓰기 회귀 15개 시나리오를 코드로 고정했고, 이 세션에서 실제로 실행해 15/15 통과를 확인했습니다 (`npm run test:rules`).
+
+### 네 번째 확장: 개인 활동 분석 (PLANNING.md 5단계)
+
+"Amplitude 같은 걸 만들어줘"라는 요청에서 시작했습니다. 그대로 옮기면 여러 사용자를 한눈에 보는 관리자 대시보드가 되는데, 이 앱의 `firestore.rules`는 전부 "본인 uid만" 기준이라 정면으로 충돌합니다 — 그래서 "내 활동 분석"으로 좁혔습니다. 데이터 레이어(이벤트 트래킹+계측) → 차트 프리미티브 → 화면 조립, 3단계로 나눠 순차 진행했습니다(차트 프리미티브는 데이터 레이어와 파일이 안 겹쳐 병렬로 같이 진행).
+
+- **이벤트 트래킹**: `events/{eventId}` 컬렉션(append-only — 생성만 허용, 수정·삭제는 소유자에게도 금지). 스펙 생성/발행 토글/템플릿 가져오기 등 기존 동작 지점에 `trackEvent()` 호출만 추가.
+- **집계는 클라이언트에서**: Cloud Functions 트리거나 별도 파이프라인 없이, 브라우저가 본인 이벤트를 읽어 직접 집계합니다 — 개인 데이터 규모에는 충분하고 "별도 백엔드 서버 없음" 원칙과 맞습니다.
+- **퍼널의 한계를 숨기지 않음**: 이벤트에 `specId`가 없어서 "이 문서 하나의 정확한 경로"는 조인할 수 없습니다. 그래서 퍼널은 "같은 기간 단계별 이벤트 건수 비율"로 정직하게 좁혔고, 화면에도 그 한계를 캡션으로 명시했습니다 — 없는 정밀도를 있는 척하지 않는 쪽을 택했습니다.
+- **리텐션은 이벤트가 아니라 스펙 자체를 씀**: `events` 대신 `specs`의 `createdAt`/`updatedAt`으로 "생성 주 코호트별로 N주 뒤에도 다시 손을 댔는지" 비율을 계산합니다 — 이벤트 로그의 조인 한계를 피해서 이미 있는 신뢰할 수 있는 데이터로 답을 냈습니다.
+- **차트 라이브러리를 새로 안 넣음**: 4개 화면 전부 "크기 비교"가 목적이라(여러 카테고리를 구분하는 게 목적이 아님) `dataviz` 스킬의 색상 공식대로 기존 `primary` 파란 램프 하나만 쓰는 인라인 SVG로 직접 그렸습니다 — 바로 직전에 끝낸 번들 크기 최적화를 무의미하게 만들지 않기 위해서이기도 합니다.
