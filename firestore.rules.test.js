@@ -148,6 +148,41 @@ describe('config/{uid} stays fully private, untouched by the publish rules', () 
   })
 })
 
+describe('events/{eventId} append-only log rules', () => {
+  it('lets the owner create an event with their own uid', async () => {
+    const db = testEnv.authenticatedContext(OWNER_UID).firestore()
+    await assertSucceeds(
+      db.collection('events').doc('event-1').set({ uid: OWNER_UID, name: 'spec_created', properties: {} }),
+    )
+  })
+
+  it('denies creating an event with a mismatched uid', async () => {
+    const db = testEnv.authenticatedContext(OWNER_UID).firestore()
+    await assertFails(
+      db.collection('events').doc('event-spoofed').set({ uid: OTHER_UID, name: 'spec_created', properties: {} }),
+    )
+  })
+
+  it('lets the owner read their own event', async () => {
+    await seed((db) => db.collection('events').doc('event-2').set({ uid: OWNER_UID, name: 'spec_created', properties: {} }))
+    const db = testEnv.authenticatedContext(OWNER_UID).firestore()
+    await assertSucceeds(db.collection('events').doc('event-2').get())
+  })
+
+  it('denies another uid from reading someone else\'s event', async () => {
+    await seed((db) => db.collection('events').doc('event-3').set({ uid: OWNER_UID, name: 'spec_created', properties: {} }))
+    const db = testEnv.authenticatedContext(OTHER_UID).firestore()
+    await assertFails(db.collection('events').doc('event-3').get())
+  })
+
+  it('denies update and delete even for the owner', async () => {
+    await seed((db) => db.collection('events').doc('event-4').set({ uid: OWNER_UID, name: 'spec_created', properties: {} }))
+    const db = testEnv.authenticatedContext(OWNER_UID).firestore()
+    await assertFails(db.collection('events').doc('event-4').update({ name: 'hacked' }))
+    await assertFails(db.collection('events').doc('event-4').delete())
+  })
+})
+
 // Sanity check so a silently-empty test file (e.g. emulator not reachable) doesn't pass as green.
 describe('sanity', () => {
   it('ran the expected number of top-level describe blocks', () => {

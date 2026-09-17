@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { getSpec } from '../services/specs'
 import type { Spec } from '../services/specs'
 import type { DocTemplate } from '../lib/defaultTemplates'
+import { trackEvent } from '../services/analytics'
 
 export function CommunityDetail() {
   const { id } = useParams<{ id: string }>()
@@ -40,6 +41,7 @@ export function CommunityDetail() {
         hint: section.hint,
       })),
     }
+    trackEvent(user.uid, 'template_imported_from_community', { sourceDocType: spec.docType })
     navigate('/specs/new', { state: { incomingTemplate: template } })
   }
 

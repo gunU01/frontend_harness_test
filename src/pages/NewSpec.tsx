@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { createSpec } from '../services/specs'
 import { getOrCreateConfig } from '../services/config'
+import { trackEvent } from '../services/analytics'
 import type { DocTemplate } from '../lib/defaultTemplates'
 
 interface NewSpecLocationState {
@@ -35,6 +36,7 @@ export function NewSpec() {
       oneLiner.trim(),
       selectedTemplate,
     )
+    trackEvent(user.uid, 'spec_created', { docType: selectedTemplate.name, templateId: selectedTemplate.id })
     navigate(`/specs/${id}`)
   }
 

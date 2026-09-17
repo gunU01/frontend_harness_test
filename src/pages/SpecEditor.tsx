@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { getSpec, updateSpec } from '../services/specs'
 import type { Spec, SpecSection } from '../services/specs'
 import { critique, generateDraft, regenerateSection } from '../services/generate'
+import { trackEvent } from '../services/analytics'
 
 function useIsDesktop() {
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768)
@@ -132,6 +133,7 @@ export function SpecEditor() {
     if (!id || !spec) return
     setSpec({ ...spec, published })
     updateSpec(id, { published })
+    trackEvent(spec.uid, 'published_toggled', { docType: spec.docType, published })
   }
 
   function selectSection(key: string) {
@@ -161,6 +163,7 @@ export function SpecEditor() {
       skipContentSave.current = true
       setSpec({ ...spec, sections: nextSections })
       await updateSpec(id, { sections: nextSections })
+      trackEvent(spec.uid, 'draft_generated', { docType: spec.docType })
     } finally {
       setBusy(null)
     }
@@ -175,13 +178,14 @@ export function SpecEditor() {
       skipContentSave.current = true
       setSpec({ ...spec, sections: nextSections })
       await updateSpec(id, { sections: nextSections })
+      trackEvent(spec.uid, 'section_regenerated', { docType: spec.docType, sectionKey: selectedKey })
     } finally {
       setBusy(null)
     }
   }
 
   async function handleCritique() {
-    if (!id) return
+    if (!id || !spec) return
     setBusy('critique')
     try {
       const result = await critique(id)
@@ -191,6 +195,7 @@ export function SpecEditor() {
         .filter(Boolean)
         .slice(0, 3)
       setQuestions(lines)
+      trackEvent(spec.uid, 'gap_check_used', { docType: spec.docType })
     } finally {
       setBusy(null)
     }

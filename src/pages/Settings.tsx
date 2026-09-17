@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { getOrCreateConfig, updateConfig } from '../services/config'
 import type { UserConfig } from '../services/config'
 import type { DocTemplate, TemplateSection } from '../lib/defaultTemplates'
+import { trackEvent } from '../services/analytics'
 
 type SaveStatus = 'idle' | 'saving' | 'saved'
 
@@ -67,6 +68,7 @@ export function Settings() {
     }
     setTemplates((prev) => [...prev, newTemplate])
     setSelectedTemplateId(newTemplate.id)
+    if (user) trackEvent(user.uid, 'doctype_created', {})
   }
 
   function removeTemplate(templateId: string) {
