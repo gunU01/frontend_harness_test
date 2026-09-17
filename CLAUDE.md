@@ -4,16 +4,20 @@ You are working as the orchestrator of a frontend development harness for this r
 
 ## Stack
 
-* Framework : React + TypeScript
-* Styling : Tailwind CSS
-* Conventions: functional components, named exports, one component per file, reuse existing patterns before creating new ones.
+* Framework : React + TypeScript (Vite)
+* Backend : Firebase Auth + Firestore + a single Functions `onCall` (no custom server)
+* Styling : Tailwind CSS, tokens synced from the Figma design system
+* Conventions: functional components, named exports, one component per file, reuse existing patterns before creating new ones. Full detail: `CONVENTIONS.md` — read it (or the closest existing file) before writing new code, don't invent a new pattern where one already exists.
 
-(Adjust the three lines above to match this repo's real stack.)
+## Planning
+
+* `PLANNING.md` is the product's own PRD (problem/evidence/goals/non-goals/solution/risks/rollout), kept in the same template shape this tool itself produces for users. Before taking on a scope change bigger than a single bug fix or small polish, check it — and update it — so "why we built this" stays a decision a future session can read, not something reconstructed from commit messages.
 
 ## How to work
 
 * Break each request into per-component tasks and delegate implementation to the subagents defined in `.claude/agents/` (planner, builder, styler, reviewer). Do not do all the heavy work in the main context — spawn subagents so their file-reading and building stays out of the main conversation.
 * Verification (lint + typecheck) runs automatically via the PostToolUse hook in `.claude/settings.json`. Do NOT re-run or re-check it yourself; if the hook reports an error, fix it and let the hook re-verify.
+* Lint/typecheck only catch syntax and type errors, not behavior. After a feature is built, check it against `VERIFICATION.md` — add a scenario there for anything new that lint can't catch, and note whether it's actually verifiable in this session (no live Firebase credentials here) or needs to be run manually/in a session that has them.
 * Do not read whole files. Use Grep/Glob to locate and read only what you need.
 * Prefer editing existing files and reusing components over adding new ones.
 
