@@ -15,6 +15,7 @@ describe('fillSpecDefaults', () => {
     expect(result.authorName).toBe('익명')
     expect(result.risks).toEqual([])
     expect(result.stakeholders).toEqual([])
+    expect(result.projectId).toBe('unclassified')
     expect(result.uid).toBe('u1')
     expect(result.title).toBe('제목')
   })
@@ -62,6 +63,7 @@ describe('fillSpecDefaults', () => {
     const result = fillSpecDefaults('spec-5', {
       uid: 'u1',
       authorName: '홍길동',
+      projectId: 'project-1',
       title: '제목',
       oneLiner: '한줄',
       status: 'draft',
@@ -77,6 +79,7 @@ describe('fillSpecDefaults', () => {
       id: 'spec-5',
       uid: 'u1',
       authorName: '홍길동',
+      projectId: 'project-1',
       title: '제목',
       oneLiner: '한줄',
       status: 'draft',
@@ -87,5 +90,15 @@ describe('fillSpecDefaults', () => {
       risks,
       stakeholders,
     })
+  })
+
+  it('backfills projectId to the unclassified sentinel when missing (pre-project docs)', () => {
+    const result = fillSpecDefaults('spec-6', {
+      uid: 'u1',
+      title: '제목',
+      oneLiner: '한줄',
+    })
+
+    expect(result.projectId).toBe('unclassified')
   })
 })

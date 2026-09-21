@@ -245,6 +245,42 @@ describe('admins/{uid} read-only, no client write path', () => {
   })
 })
 
+describe('projects/{projectId} owner-only rules (no published concept)', () => {
+  it('lets the owner create a project with their own uid, and denies creating one under another uid', async () => {
+    const ownerDb = testEnv.authenticatedContext(OWNER_UID).firestore()
+    await assertSucceeds(ownerDb.collection('projects').doc('new-by-owner').set({ uid: OWNER_UID, name: 'my project' }))
+    await assertFails(ownerDb.collection('projects').doc('new-spoofed').set({ uid: OTHER_UID, name: 'spoofed' }))
+  })
+
+  it('lets the owner read/update/delete their own project', async () => {
+    await seed((db) => db.collection('projects').doc('owner-project').set({ uid: OWNER_UID, name: 'original' }))
+    const db = testEnv.authenticatedContext(OWNER_UID).firestore()
+    const ref = db.collection('projects').doc('owner-project')
+    await assertSucceeds(ref.get())
+    await assertSucceeds(ref.update({ name: 'renamed by owner' }))
+    await assertSucceeds(ref.delete())
+  })
+
+  it('denies another uid from reading, updating, or deleting someone else\'s project', async () => {
+    await seed((db) => db.collection('projects').doc('other-project').set({ uid: OWNER_UID, name: 'private project' }))
+    const db = testEnv.authenticatedContext(OTHER_UID).firestore()
+    const ref = db.collection('projects').doc('other-project')
+    await assertFails(ref.get())
+    await assertFails(ref.update({ name: 'hacked' }))
+    await assertFails(ref.delete())
+  })
+
+  it('denies an unauthenticated user from reading or writing any project', async () => {
+    await seed((db) => db.collection('projects').doc('unauth-project').set({ uid: OWNER_UID, name: 'private project' }))
+    const db = testEnv.unauthenticatedContext().firestore()
+    const ref = db.collection('projects').doc('unauth-project')
+    await assertFails(ref.get())
+    await assertFails(ref.update({ name: 'hacked' }))
+    await assertFails(ref.delete())
+    await assertFails(db.collection('projects').doc('unauth-new').set({ uid: OWNER_UID, name: 'x' }))
+  })
+})
+
 // Sanity check so a silently-empty test file (e.g. emulator not reachable) doesn't pass as green.
 describe('sanity', () => {
   it('ran the expected number of top-level describe blocks', () => {

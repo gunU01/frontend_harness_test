@@ -40,6 +40,9 @@ export interface Spec {
   id: string
   uid: string
   authorName: string
+  // 소속 프로젝트 id. 프로젝트가 없는(구버전/미분류) 스펙은 'unclassified' 센티널 값을 쓴다 —
+  // null/undefined로 두면 project별 필터링 로직마다 null 분기가 필요해지므로 피한다.
+  projectId: string
   title: string
   oneLiner: string
   status: SpecStatus
@@ -59,6 +62,7 @@ export async function createSpec(
   title: string,
   oneLiner: string,
   template: DocTemplate,
+  projectId: string,
 ): Promise<string> {
   const sections: SpecSection[] = template.sections.map((section) => ({
     key: section.key,
@@ -70,6 +74,7 @@ export async function createSpec(
   const ref = await addDoc(collection(db, 'specs'), {
     uid,
     authorName,
+    projectId,
     title,
     oneLiner,
     status: 'draft' as SpecStatus,
@@ -92,6 +97,7 @@ export function fillSpecDefaults(id: string, data: Record<string, unknown>): Spe
     id,
     ...data,
     authorName: (data.authorName as string) ?? '익명',
+    projectId: (data.projectId as string) ?? 'unclassified',
     risks: (data.risks as SpecRisk[]) ?? [],
     stakeholders: (data.stakeholders as SpecStakeholder[]) ?? [],
   } as Spec
@@ -99,6 +105,17 @@ export function fillSpecDefaults(id: string, data: Record<string, unknown>): Spe
 
 export async function listSpecs(uid: string): Promise<Spec[]> {
   const q = query(collection(db, 'specs'), where('uid', '==', uid), orderBy('updatedAt', 'desc'))
+  const snap = await getDocs(q)
+  return snap.docs.map((d) => fillSpecDefaults(d.id, d.data()))
+}
+
+export async function listSpecsByProject(uid: string, projectId: string): Promise<Spec[]> {
+  const q = query(
+    collection(db, 'specs'),
+    where('uid', '==', uid),
+    where('projectId', '==', projectId),
+    orderBy('updatedAt', 'desc'),
+  )
   const snap = await getDocs(q)
   return snap.docs.map((d) => fillSpecDefaults(d.id, d.data()))
 }

@@ -35,6 +35,8 @@ export function NewSpec() {
       title.trim(),
       oneLiner.trim(),
       selectedTemplate,
+      // TODO: 프로젝트 선택 UI가 생기면 실제 선택된 projectId로 교체할 placeholder.
+      'unclassified',
     )
     trackEvent(user.uid, 'spec_created', { docType: selectedTemplate.name, templateId: selectedTemplate.id })
     navigate(`/specs/${id}`)
