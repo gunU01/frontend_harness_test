@@ -272,6 +272,12 @@ export function SpecEditor() {
   if (!isDesktop) {
     return (
       <main className="mx-auto max-w-2xl px-4 py-10">
+        <Link
+          to={`/projects/${spec.projectId}`}
+          className="mb-4 inline-block text-sm text-slate-500 hover:text-slate-700"
+        >
+          ← 프로젝트로 돌아가기
+        </Link>
         <p className="mb-6 text-sm text-slate-500">데스크톱에서 이어서 작성하세요.</p>
         <h1 className="mb-1 text-xl font-bold text-slate-900">{spec.title}</h1>
         <p className="mb-6 text-slate-500">{spec.oneLiner}</p>
@@ -317,6 +323,12 @@ export function SpecEditor() {
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-10">
+      <Link
+        to={`/projects/${spec.projectId}`}
+        className="mb-4 inline-block text-sm text-slate-500 hover:text-slate-700"
+      >
+        ← 프로젝트로 돌아가기
+      </Link>
       <div className="mb-6 flex flex-col gap-2">
         <input
           value={spec.title}

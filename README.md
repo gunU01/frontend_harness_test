@@ -12,13 +12,14 @@
 
 ## 화면
 
-로그인 후 화면(`/specs`, `/specs/new`, `/specs/:id`, `/settings`, `/analytics`)은 공통 헤더(`AppHeader`)로 이동합니다. `/`, `/signin`, `/community`, `/community/:id`는 헤더 없는 공개 화면입니다.
+로그인 후 화면(`/projects/:projectId`, `/specs`, `/specs/new`, `/specs/:id`, `/settings`, `/analytics` 등)은 좌측 고정 사이드바(`Sidebar`, 예전 공통 헤더 `AppHeader`를 대체)와 함께 뜹니다. `/`은 로그인 여부에 따라 갈라지고, `/signin`, `/community`, `/community/:id`는 사이드바 없는 공개 화면입니다.
 
-- **홈** (`/`): 로그인 여부에 따라 시작하기/스펙 목록 버튼만 있는 랜딩
+- **홈** (`/`): 로그아웃 상태면 시작하기 버튼만 있는 랜딩. 로그인 상태면 사이드바 + 내 프로젝트 카드 갤러리(+ 새 프로젝트 인라인 생성)
+- **프로젝트 상세** (`/projects/:projectId`): 프로젝트 이름(자동저장 인라인 편집) + 그 프로젝트 소속 문서 카드 목록 + "새 문서 만들기". `projectId`가 `unclassified`(프로젝트 없이 만들어진 문서들의 센티널)이면 이름 편집 없이 "미분류"로만 표시
 - **설정** (`/settings`): 좌측에 내 문서 타입 목록(PRD, 회의록, ... — 추가·삭제), 우측에 선택된 타입의 섹션 편집(제목/hint, 추가·삭제·순서변경). 아래에 전체 문서 타입이 공유하는 제품 설명(`productContext`)·용어집(`glossary`)
-- **목록** (`/specs`): 작성 중인 스펙 카드 (문서 타입 라벨 + draft/review/done 상태뱃지)
-- **새 스펙 만들기** (`/specs/new`): 문서 타입을 카드 갤러리에서 고른 뒤 제목/한줄정의를 입력하는 2단계 플로우 (예전엔 `/specs`의 인라인 `<select>`였음)
-- **작성** (`/specs/:id`): 왼쪽 섹션 목록, 오른쪽 편집. 버튼 3개 — 초안 생성 / 이 섹션 다시 쓰기 / 빈틈 지적. "커뮤니티에 공개하기" 체크박스로 발행 여부 전환
+- **전체 문서** (`/specs`): 프로젝트에 상관없이 내가 쓴 모든 스펙 카드 (문서 타입·소속 프로젝트 라벨 + draft/review/done 상태뱃지)
+- **새 스펙 만들기** (`/specs/new`, `/projects/:projectId/specs/new`): 문서 타입을 카드 갤러리에서 고른 뒤 제목/한줄정의를 입력하는 2단계 플로우. 프로젝트 안에서 진입하면 그 프로젝트 소속으로, 아니면 `unclassified` 소속으로 생성됨
+- **작성** (`/specs/:id`): 왼쪽 섹션 목록, 오른쪽 편집. 버튼 3개 — 초안 생성 / 이 섹션 다시 쓰기 / 빈틈 지적. "커뮤니티에 공개하기" 체크박스로 발행 여부 전환. 상단에 소속 프로젝트로 돌아가는 링크
 - **커뮤니티** (`/community`, 공개, 로그인 불필요): 발행된 스펙을 카드로 둘러보는 목록
 - **커뮤니티 상세** (`/community/:id`, 공개): 발행된 스펙 하나를 읽기 전용으로 표시. 작성자 정보는 노출하지 않음 (익명)
 - **분석** (`/analytics`): "내 활동 분석" — 본인 이벤트만 본인이 보는 개인용 대시보드/퍼널/리텐션 3탭. 다른 사용자 데이터는 보이지 않음
@@ -31,8 +32,11 @@ config/{uid}
   productContext: string
   glossary: string
 
+projects/{projectId}
+  uid, name, createdAt, updatedAt
+
 specs/{specId}
-  uid, authorName, title, oneLiner, status, templateId, docType, published
+  uid, authorName, projectId, title, oneLiner, status, templateId, docType, published
   sections: [{ key, title, hint, content }]
   risks: [{ id, text, resolved }]
   stakeholders: [{ id, name, confirmed }]
@@ -41,6 +45,8 @@ specs/{specId}
 events/{eventId}   # append-only, 본인만 생성/읽기 가능, 수정·삭제 전부 금지
   uid, name, properties, timestamp
 ```
+
+`specs.projectId`는 그 문서가 속한 프로젝트의 id이거나, 프로젝트 없이 만들어진(구버전 포함) 문서를 뜻하는 `'unclassified'` 센티널입니다 — `null`/`undefined`를 허용하면 프로젝트별 필터링 코드마다 null 분기가 필요해지므로 항상 문자열 하나로 채웁니다. `projects/{projectId}`는 `specs`와 달리 발행/공개 개념이 없어 항상 소유자 본인만 읽고 쓸 수 있습니다.
 
 `published`가 `true`면 `/community/:id`에서 로그인 없이 읽을 수 있습니다. `firestore.rules`가 `specs`의 읽기 조건을 "작성자 본인 또는 `published == true`"로 분기하고, 쓰기(생성/수정/삭제)는 여전히 작성자 본인만 가능합니다 — `config/{uid}`(제품 설명·용어집)는 이 변경과 무관하게 항상 비공개입니다. `published==true` 목록 조회에 필요한 복합 색인은 `firestore.indexes.json`에 정의되어 있습니다.
 
@@ -146,3 +152,13 @@ MVP 이후 첫 확장으로 "문서 타입 다양화"(PRD 외 회의록 등)를 
 - **퍼널의 한계를 숨기지 않음**: 이벤트에 `specId`가 없어서 "이 문서 하나의 정확한 경로"는 조인할 수 없습니다. 그래서 퍼널은 "같은 기간 단계별 이벤트 건수 비율"로 정직하게 좁혔고, 화면에도 그 한계를 캡션으로 명시했습니다 — 없는 정밀도를 있는 척하지 않는 쪽을 택했습니다.
 - **리텐션은 이벤트가 아니라 스펙 자체를 씀**: `events` 대신 `specs`의 `createdAt`/`updatedAt`으로 "생성 주 코호트별로 N주 뒤에도 다시 손을 댔는지" 비율을 계산합니다 — 이벤트 로그의 조인 한계를 피해서 이미 있는 신뢰할 수 있는 데이터로 답을 냈습니다.
 - **차트 라이브러리를 새로 안 넣음**: 4개 화면 전부 "크기 비교"가 목적이라(여러 카테고리를 구분하는 게 목적이 아님) `dataviz` 스킬의 색상 공식대로 기존 `primary` 파란 램프 하나만 쓰는 인라인 SVG로 직접 그렸습니다 — 바로 직전에 끝낸 번들 크기 최적화를 무의미하게 만들지 않기 위해서이기도 합니다.
+
+### 다섯 번째 확장: 프로젝트 구조 + 사이드바 내비게이션 (PLANNING.md 7단계)
+
+지금까지는 스펙(문서) 하나하나가 평평한 목록이었는데, 문서 수가 늘어나면서 "여러 문서를 묶어서 보는 단위"가 없다는 요청이 왔습니다.
+
+- **프로젝트 = 문서를 묶는 폴더**: `projects/{projectId}` 컬렉션을 새로 추가하고, `specs`에 `projectId` 필드를 더했습니다. 기존에 만든 스펙(프로젝트 개념이 없던 시절 문서)은 `null`이 아니라 `'unclassified'` 센티널로 채웠습니다 — 구버전 필드 누락을 기본값으로 채우는 기존 원칙(`fillSpecDefaults`)과 같은 결입니다.
+- **`AppHeader` → `Sidebar`**: 상단 공통 헤더를 좌측 고정 사이드바로 바꿨습니다. 홈(`/`)이 "시작하기" 링크 하나뿐이던 랜딩에서 프로젝트 카드 갤러리로 바뀌고, 프로젝트를 열면(`/projects/:projectId`) 그 프로젝트의 문서 목록 + 사이드바에 프로젝트 전환/문서 이동 링크가 함께 뜹니다. 설정/커뮤니티/분석은 프로젝트에 종속시키지 않고 계속 전역 기능으로 남겼습니다 — 지금 스코프에 프로젝트별로 쪼갤 이유가 없습니다.
+- **`/specs/:id` 라우트는 그대로 둠**: 스펙 편집 화면을 `/projects/:id/specs/:specId`처럼 프로젝트 아래로 중첩시키지 않았습니다. 기존 링크·테스트가 전부 평평한 `/specs/:id`를 참조하고 있어서, 중첩시키는 이득보다 건드려야 할 범위가 훨씬 컸습니다 — 대신 스펙 화면에 `spec.projectId`로 계산한 "← 프로젝트로 돌아가기" 링크만 추가했습니다.
+- **"전체 문서"(`/specs`)는 안 없앰**: 프로젝트 단위 목록과 별개로, 프로젝트를 넘나들며 전체를 훑어보는 뷰가 여전히 필요하다고 판단해 `listSpecs`를 그대로 남기고 각 카드에 소속 프로젝트 라벨만 추가했습니다.
+- **테스트 중 실제로 하나 잡은 버그**: 사이드바는 라우트가 바뀌어도 언마운트되지 않는데, 프로젝트 문서 목록을 불러오는 이펙트가 `projectId`에만 의존해서 "같은 프로젝트로 다시 돌아왔을 때" 새로 만든 문서가 안 보이는 문제가 있었습니다. `useLocation().key`를 의존성에 추가해 재진입마다 다시 불러오게 고쳤습니다 (`VERIFICATION.md` P1-g, `e2e/projects.spec.ts` 참고).

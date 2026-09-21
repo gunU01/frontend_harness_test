@@ -1,6 +1,6 @@
 import { Navigate, Outlet } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { AppHeader } from './AppHeader'
+import { Sidebar } from './Sidebar'
 
 export function PrivateRoute() {
   const { user, loading } = useAuth()
@@ -18,9 +18,11 @@ export function PrivateRoute() {
   }
 
   return (
-    <>
-      <AppHeader />
-      <Outlet />
-    </>
+    <div className="flex min-h-screen">
+      <Sidebar />
+      <div className="flex-1">
+        <Outlet />
+      </div>
+    </div>
   )
 }

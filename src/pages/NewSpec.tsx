@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { createSpec } from '../services/specs'
 import { getOrCreateConfig } from '../services/config'
@@ -14,6 +14,10 @@ export function NewSpec() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+  // /projects/:projectId/specs/new 로 들어온 경우에만 값이 있다. 없으면(=/specs/new) 기존과
+  // 동일하게 'unclassified' 센티널을 쓴다 — CommunityDetail.tsx의 템플릿 가져오기 플로우가
+  // 이 파라미터 없는 경로를 그대로 쓰므로 절대 건드리지 않는다.
+  const { projectId: routeProjectId } = useParams<{ projectId?: string }>()
   const incomingTemplate = (location.state as NewSpecLocationState | null)?.incomingTemplate ?? null
   const [templates, setTemplates] = useState<DocTemplate[]>([])
   const [selectedTemplate, setSelectedTemplate] = useState<DocTemplate | null>(incomingTemplate)
@@ -35,8 +39,7 @@ export function NewSpec() {
       title.trim(),
       oneLiner.trim(),
       selectedTemplate,
-      // TODO: 프로젝트 선택 UI가 생기면 실제 선택된 projectId로 교체할 placeholder.
-      'unclassified',
+      routeProjectId ?? 'unclassified',
     )
     trackEvent(user.uid, 'spec_created', { docType: selectedTemplate.name, templateId: selectedTemplate.id })
     navigate(`/specs/${id}`)
@@ -44,6 +47,14 @@ export function NewSpec() {
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-10">
+      {routeProjectId && (
+        <Link
+          to={`/projects/${routeProjectId}`}
+          className="mb-4 inline-block text-sm text-slate-500 hover:text-slate-700"
+        >
+          ← 프로젝트로 돌아가기
+        </Link>
+      )}
       <h1 className="mb-1 text-xl font-bold text-slate-900">새 스펙 만들기</h1>
 
       {!selectedTemplate ? (

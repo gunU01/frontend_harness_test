@@ -7,6 +7,9 @@ const Home = lazy(() => import('./pages/Home').then((m) => ({ default: m.Home })
 const SignIn = lazy(() => import('./pages/SignIn').then((m) => ({ default: m.SignIn })))
 const SpecList = lazy(() => import('./pages/SpecList').then((m) => ({ default: m.SpecList })))
 const NewSpec = lazy(() => import('./pages/NewSpec').then((m) => ({ default: m.NewSpec })))
+const ProjectDetail = lazy(() =>
+  import('./pages/ProjectDetail').then((m) => ({ default: m.ProjectDetail }))
+)
 const SpecEditor = lazy(() => import('./pages/SpecEditor').then((m) => ({ default: m.SpecEditor })))
 const Settings = lazy(() => import('./pages/Settings').then((m) => ({ default: m.Settings })))
 const Community = lazy(() => import('./pages/Community').then((m) => ({ default: m.Community })))
@@ -29,6 +32,8 @@ export default function App() {
           <Route path="/community" element={<Community />} />
           <Route path="/community/:id" element={<CommunityDetail />} />
           <Route element={<PrivateRoute />}>
+            <Route path="/projects/:projectId" element={<ProjectDetail />} />
+            <Route path="/projects/:projectId/specs/new" element={<NewSpec />} />
             <Route path="/specs" element={<SpecList />} />
             <Route path="/specs/new" element={<NewSpec />} />
             <Route path="/specs/:id" element={<SpecEditor />} />

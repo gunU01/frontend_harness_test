@@ -11,11 +11,11 @@ test('로그인하면 /specs로 리다이렉트된다', async ({ page }) => {
 
   await expect(page).toHaveURL(/\/specs$/)
   await expect(page.getByRole('heading', { name: '스펙 목록' })).toBeVisible()
-  // PrivateRoute 안쪽이라 공통 헤더가 보여야 한다.
-  await expect(page.getByRole('link', { name: '스펙 목록' })).toBeVisible()
+  // PrivateRoute 안쪽이라 사이드바가 보여야 한다 (AppHeader를 대체한 Sidebar.tsx).
+  await expect(page.getByRole('link', { name: '전체 문서' })).toBeVisible()
 })
 
-test('로그인 화면(/signin)에는 공통 헤더가 없다', async ({ page }) => {
+test('로그인 화면(/signin)에는 사이드바가 없다', async ({ page }) => {
   await page.goto('signin')
-  await expect(page.getByRole('banner')).toHaveCount(0)
+  await expect(page.getByRole('complementary')).toHaveCount(0)
 })

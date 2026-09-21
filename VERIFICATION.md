@@ -80,6 +80,19 @@ lint/test:rules는 이제 로컬 훅뿐 아니라 CI(`build` job)에서도 실�
 
 **에뮬레이터에 관리자를 시드하는 방법 (e2e 전용)**: `admins/{uid}`는 `firestore.rules`가 쓰기를 완전히 막아둔 컬렉션이라(관리자 본인도 못 씀 — `firestore.rules.test.js`의 "CRITICAL" 테스트 참고) 앱의 클라이언트 SDK 경로로는 절대 만들 수 없습니다. `firestore.rules.test.js`는 `@firebase/rules-unit-testing`의 `withSecurityRulesDisabled`로 규칙을 우회해 시드하지만, 그건 별도 Node 테스트 러너(`node --test`)용이라 Playwright e2e 스펙에서 재사용할 수 없습니다. 그래서 `e2e/fixtures.ts`의 `makeUserAdmin()`이 `npm run test:e2e`가 이미 띄우는 Auth+Firestore 에뮬레이터에 직접 REST로 접근합니다: (1) Auth 에뮬레이터의 계정 목록 API로 이메일 → uid를 찾고, (2) Firestore 에뮬레이터에 `Authorization: Bearer owner` 헤더로 문서를 씁니다 — 이 토큰은 Admin SDK가 실제 서비스 계정 자격 증명 없이 에뮬레이터에 붙을 때 기본으로 보내는 값이고, Firestore 에뮬레이터는 이를 관리자/소유자 요청으로 인식해 Security Rules를 완전히 우회합니다(Admin SDK/CLI가 항상 규칙을 우회한다는 공식 동작과 같은 성격). 프로덕션 앱 코드에는 이 경로가 전혀 없고, 실제 관리자 지정은 여전히 README에 적힌 대로 Firebase 콘솔에서만 가능합니다.
 
+## P1-g — 프로젝트 구조 + 사이드바 내비게이션 (이번에 추가, PLANNING.md 7단계)
+
+`AppHeader`를 대체한 `Sidebar`와 신규 `/projects/:projectId` 흐름입니다. 로그인/Firestore가 필요해 대부분 E2E 대상입니다.
+
+- [x] **프로젝트 생성 → 프로젝트 안에서 문서 생성 → 세 화면 모두 반영** — 자동화됨(`npm run test:e2e`, `e2e/projects.spec.ts`): 로그인 후 홈(`/`)의 빈 프로젝트 갤러리 확인 → 인라인 폼으로 프로젝트 생성 → `/projects/:projectId`로 이동 → "새 문서 만들기"로 그 프로젝트 소속 문서 생성 → "← 프로젝트로 돌아가기"로 돌아와 프로젝트 상세 카드 목록과 사이드바의 프로젝트 문서 목록 둘 다에 보이는지 → "전체 문서"(`/specs`)에도 프로젝트 이름 라벨과 함께 보이는지까지 한 번에 확인.
+  - 이 테스트를 짜는 과정에서 실제 버그 하나를 잡았습니다: 사이드바는 `PrivateRoute` 안에서 라우트가 바뀌어도 언마운트되지 않고 그대로 남아있는데, 프로젝트 문서 목록을 불러오는 `useEffect`가 `projectId`에만 의존하고 있어서 "같은 프로젝트 안에서 문서를 만들고 그 프로젝트로 다시 돌아오는"(= URL의 `projectId`는 그대로인) 경우 목록이 갱신되지 않았습니다. `useLocation().key`(같은 경로를 다시 방문해도 매번 새로 발급됨)를 의존성에 추가해 고쳤습니다 — `Sidebar.tsx` 주석 참고.
+- [x] **미분류 스펙(`projectId` 없던 구버전/센티널)** — 핵심 로직은 기존 `fillSpecDefaults` 단위테스트(`npm run test:unit`)가 이미 커버. `/projects/unclassified`가 실제 Firestore 문서 없이도 크래시 없이 "미분류"로 렌더링되는지, `/specs/new`(파라미터 없음)로 만든 문서가 여전히 `projectId: 'unclassified'`로 생성되는지는 `e2e/community-template-import.spec.ts`/`e2e/spec-lifecycle.spec.ts`가 기존 경로 그대로 계속 통과하는 것으로 간접 확인됨 — "미분류" 프로젝트 상세 화면 자체를 여는 것은 이번 자동화 범위 밖, 수동 확인 대상.
+- [ ] **프로젝트 이름 인라인 편집(자동저장)**: `/projects/:projectId`에서 이름 입력 필드를 고치면 2초 디바운스 후 저장되고 새로고침해도 남아있음(`Settings.tsx`/`SpecEditor.tsx`와 같은 패턴) — 이번 자동화 범위 밖, 여전히 수동.
+- [ ] **존재하지 않는/남의 프로젝트 접근**: `/projects/{없는 id}`로 들어가면 "찾을 수 없는 프로젝트입니다."가 뜨고 크래시하지 않음 — `firestore.rules`의 `projects/{projectId}` 소유자 전용 규칙(`npm run test:rules`, 32/32 통과)이 데이터 레벨은 이미 커버하지만, 화면이 `null` 응답을 실제로 그 문구로 렌더링하는지는 자동화 범위 밖.
+- [x] **전체 문서(`/specs`)의 프로젝트 라벨** — `e2e/projects.spec.ts`가 방금 만든 문서 카드에 소속 프로젝트 이름이 메타 라벨로 보이는 것까지 확인. "미분류" 폴백 라벨 자체(프로젝트 없는 구버전 문서)는 자동화 범위 밖.
+- [ ] **네비게이션 이동/활성 링크 강조**: 사이드바의 "전체 문서"/"커뮤니티"/"분석"/"설정" 링크로 각각 이동되고, 현재 페이지 링크가 `text-primary-600 font-medium`으로 강조됨 — "분석" 링크 클릭 자체는 `e2e/analytics.spec.ts`가 매 테스트마다 이미 타고 지나가지만, 활성 링크 스타일 자체를 명시적으로 단언하지는 않음(예전 `AppHeader` 시절 P1-b와 동일한 자동화 공백).
+- [x] **로그인 화면엔 사이드바 없음** — 자동화됨(`npm run test:e2e`, `e2e/auth.spec.ts`, 기존 "공통 헤더 없음" 테스트를 사이드바 기준으로 갱신).
+
 ## P2 — 부가 동작
 
 - [ ] **반응형 전환**: 브라우저 폭을 768px 아래로 줄이면 `/specs/:id`가 편집 UI 대신 "데스크톱에서 이어서 작성하세요" + 읽기 전용 뷰로 바뀜

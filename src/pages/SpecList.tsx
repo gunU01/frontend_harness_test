@@ -1,17 +1,20 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { listSpecs } from '../services/specs'
 import type { Spec, SpecStatus } from '../services/specs'
+import { listProjects } from '../services/projects'
+import type { Project } from '../services/projects'
 import { toRelativeTime } from '../lib/relativeTime'
 
-const statusStyles: Record<SpecStatus, string> = {
+// ProjectDetail.tsx도 같은 카드 배지 스타일을 그대로 재사용하기 위해 export한다.
+export const statusStyles: Record<SpecStatus, string> = {
   draft: 'bg-slate-100 text-slate-600',
   review: 'bg-amber-100 text-amber-700',
   done: 'bg-green-100 text-green-700',
 }
 
-const statusLabels: Record<SpecStatus, string> = {
+export const statusLabels: Record<SpecStatus, string> = {
   draft: '초안',
   review: '검토중',
   done: '완료',
@@ -20,15 +23,30 @@ const statusLabels: Record<SpecStatus, string> = {
 export function SpecList() {
   const { user } = useAuth()
   const [specs, setSpecs] = useState<Spec[]>([])
+  const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (!user) return
-    listSpecs(user.uid).then((result) => {
-      setSpecs(result)
+    Promise.all([listSpecs(user.uid), listProjects(user.uid)]).then(([specsResult, projectsResult]) => {
+      setSpecs(specsResult)
+      setProjects(projectsResult)
       setLoading(false)
     })
   }, [user])
+
+  // Analytics.tsx의 "사용자별 활동" 차트가 쓰는 uid -> authorName 조회맵과 같은 패턴:
+  // projectId -> 프로젝트 이름. 'unclassified' 센티널은 실제 문서가 없으므로 "미분류"로 대체한다.
+  const projectNameById = useMemo(() => {
+    const map = new Map<string, string>()
+    for (const project of projects) map.set(project.id, project.name)
+    return map
+  }, [projects])
+
+  function projectLabel(projectId: string): string {
+    if (projectId === 'unclassified') return '미분류'
+    return projectNameById.get(projectId) ?? '미분류'
+  }
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-10">
@@ -62,7 +80,9 @@ export function SpecList() {
                   {statusLabels[spec.status]}
                 </span>
               </div>
-              <p className="mb-1 text-xs text-slate-500">{spec.docType}</p>
+              <p className="mb-1 text-xs text-slate-500">
+                {spec.docType} · {projectLabel(spec.projectId)}
+              </p>
               <p className="mb-1 text-sm text-slate-500">{spec.oneLiner}</p>
               <p className="text-xs text-slate-400">{toRelativeTime(spec.updatedAt)}</p>
             </Link>
