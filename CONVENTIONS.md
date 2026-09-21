@@ -57,10 +57,46 @@ useEffect(() => {
 ## 스타일 (Tailwind)
 
 - Tailwind 유틸리티 클래스만 사용 — CSS 모듈, styled-components, 인라인 style 객체를 쓰지 않습니다.
-- 커스텀 값은 `tailwind.config.js`의 `theme.extend`에만 추가합니다 (`colors.primary`, `fontFamily.sans`). 컴포넌트 안에 임의 hex나 px 값을 하드코딩하지 않습니다.
-- 색상 토큰은 Figma 디자인 시스템([링크](https://www.figma.com/design/Eqfw554mL4YxqKbcXRq3su))의 `primary` 램프와 동기화되어 있어야 합니다. 새 시맨틱 색이 필요하면 먼저 Figma 쪽에 정의하고 코드에 가져오세요 — 코드에서 먼저 임의로 정하지 않습니다.
+- 커스텀 값은 `tailwind.config.js`의 `theme.extend`에만 추가합니다 (`colors.primary`/`slate`/`red`/`green`/`amber`, `fontFamily.sans`). 컴포넌트 안에 임의 hex나 px 값을 하드코딩하지 않습니다.
+- 색상 토큰은 Figma 디자인 시스템([링크](https://www.figma.com/design/Eqfw554mL4YxqKbcXRq3su)) Foundations 페이지의 프리미티브 램프와 동기화되어 있어야 합니다. 새 시맨틱 색이 필요하면 먼저 Figma 쪽에 정의하고 코드에 가져오세요 — 코드에서 먼저 임의로 정하지 않습니다.
+
+### 프리미티브 램프 (v6, OKLCH 재구축)
+
+`primary`(brand)/`slate`(neutral)/`red`(status-error)/`green`(status-success)/`amber`(status-warning) 다섯 램프 모두 OKLCH 지각 균일 명도를 기준으로 다시 뽑았습니다 — 50~900 각 숫자 단계가 모든 색상군에서 같은 목표 명도(L)를 공유합니다 (`slate-100`과 `red-100`이 이제 흰 배경 대비 서로 비슷한 대비를 가짐, 예전처럼 색상마다 들쭉날쭉하지 않음). `amber`(경고색)만 예외 — 어두운 단계에서 다른 색과 같은 명도를 강제하면 누렇다 못해 갈색/올리브색으로 보이는 "다크 옐로우 문제" 때문에, `amber`의 700~900단계는 공유 명도 곡선보다 의도적으로 더 밝게, 채도는 더 낮게 잡아 "노란/황색"으로 계속 읽히도록 별도 보정했습니다. 이 보정은 v3에서 배지 텍스트 대비 때문에 `status/*` 500 대신 700 계열을 썼던 것과 같은 종류의 "숫자 그대로 강제하지 않는 의도적 예외"입니다 — 자세한 배경은 README.md "디자인 시스템" v6 절 참고.
+
+새 색이 필요하면 직접 hex를 고르지 말고, 반드시 같은 방식(OKLCH 목표 명도 + 감마트 클램프)으로 램프를 확장하거나 Figma Foundations의 기존 램프에서 가져오세요.
+
+### 시맨틱 네이밍 (Target × Role × Variant)
+
+컴포넌트에서 색을 고를 땐 아래 표로 프리미티브 클래스를 선택하세요. **Tailwind 설정에는 별도의 `fill`/`text`/`border` 색상 그룹을 추가하지 않았습니다** — 1인 프로젝트에서 프리미티브와 시맨틱 두 벌을 따로 유지하면 색 하나 바꿀 때마다 두 군데를 손으로 맞춰야 해서, 대신 "시맨틱 이름 → 실제 Tailwind 클래스" 매핑을 여기 문서 하나로만 관리합니다. 새 화면을 만들 때는 이 표에서 맞는 조합을 찾아 쓰고, 표에 없는 조합이 필요하면 표를 먼저 넓히세요 (컴포넌트에서 즉흥적으로 새 색을 쓰지 않기).
+
+| Target | Role | Variant | 실제 클래스 예시 |
+|---|---|---|---|
+| fill | brand | default | `bg-primary-500` (버튼 등 강조 배경) |
+| fill | brand | weak | `bg-primary-50` |
+| fill | neutral | default | `bg-white` |
+| fill | neutral | weak | `bg-slate-50` / `bg-slate-100` |
+| fill | status-success | weak | `bg-green-100` (완료 배지 배경) |
+| fill | status-warning | weak | `bg-amber-50` / `bg-amber-100` |
+| fill | status-error | weak | `bg-red-50` |
+| text | brand | default | `text-primary-600` |
+| text | neutral | default | `text-slate-900` (제목) |
+| text | neutral | weak | `text-slate-500` / `text-slate-400` (보조 텍스트) |
+| text | neutral | alt | `text-slate-600` / `text-slate-700` (본문) |
+| text | status-success | default | `text-green-700` |
+| text | status-warning | default | `text-amber-700` / `text-amber-800` |
+| text | status-error | default | `text-red-600` |
+| border | neutral | default | `border-slate-300` |
+| border | neutral | weak | `border-slate-100` / `border-slate-200` |
+| border | neutral | alt | `border-slate-400` |
+| border | brand | default | `border-primary-500` |
+| border | status-warning | default | `border-amber-200` |
+| border | status-error | default | `border-red-200` |
+
 - 버튼 위계: primary = `bg-primary-500 ... hover:bg-primary-600`, secondary = `bg-white border border-slate-300 ...`. 강조가 필요한 선택 상태(선택된 섹션/문서 타입 등)도 `bg-primary-500`을 씁니다 — `bg-slate-900` 같은 임의 검정을 새로 쓰지 않습니다.
+- 상태 배지(review/done 등)는 `fill/status-*/weak` + `text/status-*/default` 조합(`bg-green-100 text-green-700`, `bg-amber-100 text-amber-700`)을 그대로 씁니다.
 - 모서리: 버튼/인풋 `rounded-md`, 카드형 컨테이너 `rounded-lg`, 배지 `rounded-full`.
+- **기존 컴포넌트 className은 이번 v6 리빌드에서 건드리지 않았습니다** (Foundations + Tailwind 설정 + 문서만 범위) — 화면을 새로 만들거나 기존 화면을 수정할 때부터 위 표를 기준으로 맞추면 됩니다. 전체 화면을 한 번에 새 토큰으로 옮기는 건 별도 후속 작업입니다.
 
 ## 접근성
 
