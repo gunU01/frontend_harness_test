@@ -76,6 +76,13 @@ Figma에 별도 파일로 구축했습니다: [PRD 작성 도구 디자인 시�
   - **Tailwind 반영 방식**: 시맨틱 레이어를 위한 별도 `fill`/`text`/`border` 색상 그룹을 Tailwind에 새로 추가하지 않았습니다 — 프리미티브와 시맨틱을 각각 다른 키로 두면 색 하나 바꿀 때 두 곳을 손으로 맞춰야 해서, 1인 프로젝트 규모에는 과합니다. 대신 `primary`/`slate`/`red`/`green`/`amber` 다섯 프리미티브 램프만 새 OKLCH 값으로 교체하고(컴포넌트가 이미 `slate-*`/`red-*`/`green-*`/`amber-*`를 Tailwind 기본 팔레트로 직접 쓰고 있어서, 그 기본 키를 `theme.extend.colors`에서 덮어써 className을 하나도 안 건드리고 전 화면에 새 램프가 자동 적용되게 함), 시맨틱 매핑은 `CONVENTIONS.md` 문서 하나로만 관리합니다.
   - **Figma 반영 범위**: Foundations 페이지의 `Primitives`/`Color`(Light·Dark) 변수 컬렉션 구조는 그대로 두고 값·이름만 갱신했습니다. `Ramps`/`Components`/`Screens` 페이지는 변수 바인딩을 그대로 유지해서 자동으로 새 색이 반영됐고(스크린샷으로 확인 — 깨진 바인딩 없음), 다만 "Sementic" 다이어그램 섹션의 텍스트 라벨(Label/Line/Fill 등 구 명칭)은 이 세션의 Figma 실행 환경에 `Pretendard` 폰트가 설치돼 있지 않아 텍스트 편집 API가 거부해서(스왓치 색상 리컬러링은 폰트가 필요 없어 반영됨) 새 이름으로 못 바꿨습니다 — 다음에 폰트가 있는 세션에서 마저 정리해야 합니다.
   - **컴포넌트 코드는 이번에 안 건드림**: `tailwind.config.js`가 기본 키를 덮어쓰는 방식이라 `src/pages`/`src/components`의 className 문자열은 그대로 둬도 새 색이 자동 반영됩니다. 시맨틱 이름(`fill/brand/default` 등)을 실제 className으로 바꿔 쓰는 건 별도 후속 작업입니다.
+- **v7 (Screens 페이지를 사이드바 IA로 동기화)**: 코드에서 `AppHeader`를 `Sidebar`로 교체한 뒤(`PLANNING.md` 7단계) Figma의 "Screens" 페이지는 한동안 구 IA(상단 네비) 그대로 남아 있었습니다. 이번에 마저 맞췄습니다:
+  - Components 페이지에 새 `Sidebar` 컴포넌트 추가 — `src/components/Sidebar.tsx`와 동일한 구조(로고, 프로젝트 컨텍스트 블록, 전역 nav, 로그아웃)를 **"프로젝트 컨텍스트 표시" boolean 컴포넌트 속성**으로 한 컴포넌트에서 토글. 배경/보더/텍스트는 v6에서 만든 `Color` 컬렉션의 시맨틱 변수(`fill/neutral/default`, `border/neutral/default`, `text/neutral/default` 등)에 직접 바인딩.
+  - 기존 `AppHeader` 컴포넌트는 삭제하지 않고 이름에 "(Deprecated — Sidebar로 대체됨)"을 붙이고 설명을 남겨서, 과거 화면 목업을 참고할 땐 보이되 새로 쓰지 않게 표시.
+  - `SpecList`·`SpecEditor`·`NewSpec`·`Community`·`CommunityDetail`·`Analytics`(대시보드/퍼널/리텐션/관리자) 9개 화면 모두 상단 `AppHeader` 인스턴스를 제거하고 좌측 `Sidebar` 인스턴스로 교체. 현재 라우트가 사이드바 nav 항목과 정확히 일치하는 화면(`SpecList`→전체 문서, `Community`→커뮤니티, `Analytics` 4종→분석)은 해당 nav 텍스트를 브랜드 색으로 활성 표시.
+  - `Home – 프로젝트 갤러리`, `ProjectDetail` 화면을 신규로 조립 — 각각 `src/pages/Home.tsx`(로그인 상태)·`src/pages/ProjectDetail.tsx`를 그대로 목업화(프로젝트 카드 그리드 + "새 프로젝트" 카드 / 이름 인풋 + 문서 카드 그리드 + "새 문서 만들기" 버튼, Badge·Button 기존 컴포넌트 재사용).
+  - 화면 너비가 늘어나며(사이드바 224px만큼) Screens 페이지의 프레임들이 서로 겹치게 돼서, 전체 11개 프레임을 가로로 재배치(일정 간격)했습니다.
+  - 남은 갭: "Sementic" 다이어그램 라벨 리네임(v6에서 폰트 문제로 보류된 것)은 이번에도 손대지 않았습니다 — 별개 이슈라 이번 스코프에 포함하지 않음.
 
 ## 로컬 실행
 
