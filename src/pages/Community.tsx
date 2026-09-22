@@ -50,7 +50,7 @@ export function Community() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="제목 또는 한 줄 설명 검색"
-              className="w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm focus:border-slate-400 focus:outline-none"
+              className="w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm transition-colors focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
             />
           </div>
           <div>
@@ -61,7 +61,7 @@ export function Community() {
               id="community-doctype-filter"
               value={docType}
               onChange={(e) => setDocType(e.target.value)}
-              className="w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm focus:border-slate-400 focus:outline-none sm:w-auto"
+              className="w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm transition-colors focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100 sm:w-auto"
             >
               <option value="">전체</option>
               {docTypes.map((type) => (
@@ -77,17 +77,17 @@ export function Community() {
       {loading ? (
         <p className="text-slate-500">불러오는 중...</p>
       ) : specs.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 py-10 text-center">
+        <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-slate-200 p-10 text-center">
           <p className="text-slate-500">아직 공개된 문서가 없습니다.</p>
           <Link
             to="/specs"
-            className="rounded-md border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50"
+            className="rounded-md border border-slate-300 px-3 py-1.5 text-sm text-slate-700 transition-colors hover:bg-slate-50"
           >
             스펙 만들러 가기
           </Link>
         </div>
       ) : filteredSpecs.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 py-10 text-center">
+        <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-slate-200 p-10 text-center">
           <p className="text-slate-500">조건에 맞는 문서가 없습니다.</p>
         </div>
       ) : (
@@ -96,7 +96,7 @@ export function Community() {
             <Link
               key={spec.id}
               to={`/community/${spec.id}`}
-              className="rounded-lg border border-slate-200 p-4 transition-shadow hover:border-slate-300 hover:shadow-sm"
+              className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:border-slate-300 hover:shadow-md"
             >
               <h2 className="mb-1 font-medium text-slate-900">{spec.title}</h2>
               <p className="mb-1 text-xs text-slate-500">

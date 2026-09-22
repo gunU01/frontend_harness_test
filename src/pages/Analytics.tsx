@@ -262,7 +262,7 @@ export function Analytics() {
               className={
                 viewMode === mode.key
                   ? 'border-b-2 border-primary-500 px-3 py-2 text-sm font-medium text-primary-600'
-                  : 'border-b-2 border-transparent px-3 py-2 text-sm text-slate-600 hover:text-slate-900'
+                  : 'border-b-2 border-transparent px-3 py-2 text-sm text-slate-600 transition-colors hover:text-slate-900'
               }
             >
               {mode.label}
@@ -281,7 +281,7 @@ export function Analytics() {
             className={
               tab === t.key
                 ? 'border-b-2 border-primary-500 px-3 py-2 text-sm font-medium text-primary-600'
-                : 'border-b-2 border-transparent px-3 py-2 text-sm text-slate-600 hover:text-slate-900'
+                : 'border-b-2 border-transparent px-3 py-2 text-sm text-slate-600 transition-colors hover:text-slate-900'
             }
           >
             {t.label}
@@ -293,17 +293,19 @@ export function Analytics() {
         (eventsLoading ? (
           <p className="text-slate-500">불러오는 중...</p>
         ) : events.length === 0 ? (
-          <p className="text-slate-500">아직 데이터가 없습니다.</p>
+          <div className="rounded-lg border border-dashed border-slate-200 p-6 text-center">
+            <p className="text-slate-500">아직 데이터가 없습니다.</p>
+          </div>
         ) : (
-          <div className="space-y-8">
-            <section>
+          <div className="space-y-6">
+            <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
               <h2 className="mb-1 text-sm font-semibold text-slate-700">일별 활동량</h2>
               <p className="mb-3 text-xs text-slate-500">
                 최근 {WINDOW_DAYS}일간 하루에 발생한 이벤트 수입니다.
               </p>
               <TrendChart data={dailyCounts} valueUnit="건" formatDate={formatDayLabel} />
             </section>
-            <section>
+            <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
               <h2 className="mb-1 text-sm font-semibold text-slate-700">활동 종류별 빈도</h2>
               <p className="mb-3 text-xs text-slate-500">
                 최근 {WINDOW_DAYS}일간 어떤 활동을 얼마나 했는지 보여줍니다.
@@ -311,7 +313,7 @@ export function Analytics() {
               <BarChart data={countsByName} valueUnit="건" />
             </section>
             {viewMode === 'all' && usersByActivity.length > 0 && (
-              <section>
+              <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
                 <h2 className="mb-1 text-sm font-semibold text-slate-700">사용자별 활동</h2>
                 <p className="mb-3 text-xs text-slate-500">
                   최근 {WINDOW_DAYS}일간 사용자별로 얼마나 활동했는지 보여줍니다. 표시 이름이
@@ -327,9 +329,11 @@ export function Analytics() {
         (eventsLoading ? (
           <p className="text-slate-500">불러오는 중...</p>
         ) : events.length === 0 ? (
-          <p className="text-slate-500">아직 데이터가 없습니다.</p>
+          <div className="rounded-lg border border-dashed border-slate-200 p-6 text-center">
+            <p className="text-slate-500">아직 데이터가 없습니다.</p>
+          </div>
         ) : (
-          <section>
+          <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
             <h2 className="mb-1 text-sm font-semibold text-slate-700">생성 대비 비율</h2>
             <p className="mb-3 text-xs text-slate-500">
               최근 {WINDOW_DAYS}일간 발생한 이벤트 건수를 단계별로 센 값입니다. 이벤트 기록에
@@ -352,9 +356,11 @@ export function Analytics() {
         (specsLoading ? (
           <p className="text-slate-500">불러오는 중...</p>
         ) : specs.length === 0 ? (
-          <p className="text-slate-500">아직 작성한 스펙이 없습니다.</p>
+          <div className="rounded-lg border border-dashed border-slate-200 p-6 text-center">
+            <p className="text-slate-500">아직 작성한 스펙이 없습니다.</p>
+          </div>
         ) : (
-          <section>
+          <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
             <h2 className="mb-1 text-sm font-semibold text-slate-700">코호트별 재방문 비율</h2>
             <p className="mb-3 text-xs text-slate-500">
               스펙을 만든 주(코호트)별로, N주가 지난 뒤에도 그 문서를 다시 열어 수정했는지를
@@ -373,7 +379,7 @@ export function Analytics() {
                   id="retention-doctype-filter"
                   value={retentionDocType}
                   onChange={(e) => setRetentionDocType(e.target.value)}
-                  className="w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm focus:border-slate-400 focus:outline-none sm:w-auto"
+                  className="w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm transition-colors focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100 sm:w-auto"
                 >
                   <option value="">전체</option>
                   {specDocTypes.map((type) => (

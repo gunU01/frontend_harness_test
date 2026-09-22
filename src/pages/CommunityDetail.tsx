@@ -63,7 +63,7 @@ export function CommunityDetail() {
       <button
         type="button"
         onClick={handleUseAsTemplate}
-        className="mb-6 rounded-md bg-primary-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-600"
+        className="mb-6 rounded-md bg-primary-500 px-3 py-1.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-primary-600"
       >
         이 템플릿으로 새 스펙 만들기
       </button>

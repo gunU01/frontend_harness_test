@@ -83,7 +83,7 @@ export function ProjectDetail() {
               id="project-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full max-w-md rounded-md border border-slate-300 px-3 py-1.5 text-lg font-bold text-slate-900 focus:border-slate-400 focus:outline-none"
+              className="w-full max-w-md rounded-md border border-slate-300 px-3 py-1.5 text-lg font-bold text-slate-900 transition-colors focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
             />
           </>
         )}
@@ -93,7 +93,7 @@ export function ProjectDetail() {
         <h2 className="text-sm font-semibold text-slate-700">문서</h2>
         <Link
           to={`/projects/${projectId}/specs/new`}
-          className="rounded-md bg-primary-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-600"
+          className="rounded-md bg-primary-500 px-3 py-1.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-primary-600"
         >
           새 문서 만들기
         </Link>
@@ -102,14 +102,16 @@ export function ProjectDetail() {
       {specsLoading ? (
         <p className="text-slate-500">불러오는 중...</p>
       ) : specs.length === 0 ? (
-        <p className="text-slate-500">아직 문서가 없습니다.</p>
+        <div className="rounded-lg border border-dashed border-slate-200 p-6 text-center">
+          <p className="text-slate-500">아직 문서가 없습니다.</p>
+        </div>
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {specs.map((spec) => (
             <Link
               key={spec.id}
               to={`/specs/${spec.id}`}
-              className="rounded-lg border border-slate-200 p-4 transition-shadow hover:border-slate-300 hover:shadow-sm"
+              className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:border-slate-300 hover:shadow-md"
             >
               <div className="mb-1 flex items-center justify-between gap-2">
                 <h3 className="font-medium text-slate-900">{spec.title}</h3>

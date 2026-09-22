@@ -54,7 +54,7 @@ export function SpecList() {
         <h1 className="text-xl font-bold text-slate-900">스펙 목록</h1>
         <Link
           to="/specs/new"
-          className="rounded-md bg-primary-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-600"
+          className="rounded-md bg-primary-500 px-3 py-1.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-primary-600"
         >
           새 스펙 만들기
         </Link>
@@ -63,14 +63,16 @@ export function SpecList() {
       {loading ? (
         <p className="text-slate-500">불러오는 중...</p>
       ) : specs.length === 0 ? (
-        <p className="text-slate-500">아직 작성한 스펙이 없습니다.</p>
+        <div className="rounded-lg border border-dashed border-slate-200 p-6 text-center">
+          <p className="text-slate-500">아직 작성한 스펙이 없습니다.</p>
+        </div>
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {specs.map((spec) => (
             <Link
               key={spec.id}
               to={`/specs/${spec.id}`}
-              className="rounded-lg border border-slate-200 p-4 transition-shadow hover:border-slate-300 hover:shadow-sm"
+              className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:border-slate-300 hover:shadow-md"
             >
               <div className="mb-1 flex items-center justify-between gap-2">
                 <h2 className="font-medium text-slate-900">{spec.title}</h2>

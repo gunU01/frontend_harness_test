@@ -291,7 +291,9 @@ export function SpecEditor() {
           <div>
             <h2 className="mb-1 font-semibold text-slate-800">가정/리스크 트래커</h2>
             {spec.risks.length === 0 ? (
-              <p className="text-sm text-slate-400">아직 등록된 리스크가 없습니다.</p>
+              <div className="rounded-lg border border-dashed border-slate-200 p-4 text-center">
+                <p className="text-sm text-slate-400">아직 등록된 리스크가 없습니다.</p>
+              </div>
             ) : (
               <ul className="flex flex-col gap-1 text-sm text-slate-600">
                 {spec.risks.map((risk) => (
@@ -305,7 +307,9 @@ export function SpecEditor() {
           <div>
             <h2 className="mb-1 font-semibold text-slate-800">이해관계자 확인 체크리스트</h2>
             {spec.stakeholders.length === 0 ? (
-              <p className="text-sm text-slate-400">아직 등록된 이해관계자가 없습니다.</p>
+              <div className="rounded-lg border border-dashed border-slate-200 p-4 text-center">
+                <p className="text-sm text-slate-400">아직 등록된 이해관계자가 없습니다.</p>
+              </div>
             ) : (
               <ul className="flex flex-col gap-1 text-sm text-slate-600">
                 {spec.stakeholders.map((person) => (
@@ -333,13 +337,13 @@ export function SpecEditor() {
         <input
           value={spec.title}
           onChange={(e) => setSpec({ ...spec, title: e.target.value })}
-          className="rounded-md border border-slate-300 px-3 py-1.5 text-lg font-bold text-slate-900 focus:border-slate-400 focus:outline-none"
+          className="rounded-md border border-slate-300 px-3 py-1.5 text-lg font-bold text-slate-900 transition-colors focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
         />
         <input
           value={spec.oneLiner}
           onChange={(e) => setSpec({ ...spec, oneLiner: e.target.value })}
           placeholder="한 줄 문제 정의"
-          className="rounded-md border border-slate-300 px-3 py-1.5 text-sm text-slate-600 focus:border-slate-400 focus:outline-none"
+          className="rounded-md border border-slate-300 px-3 py-1.5 text-sm text-slate-600 transition-colors focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
         />
         <div className="flex items-center gap-2">
           <input
@@ -367,7 +371,7 @@ export function SpecEditor() {
           type="button"
           onClick={handleGenerateDraft}
           disabled={busy !== null}
-          className="rounded-md bg-primary-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-600 disabled:opacity-50"
+          className="rounded-md bg-primary-500 px-3 py-1.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-primary-600 disabled:opacity-50"
         >
           {busy === 'draft' ? '생성 중...' : '초안 생성'}
         </button>
@@ -375,7 +379,7 @@ export function SpecEditor() {
           type="button"
           onClick={handleRegenerateSection}
           disabled={busy !== null || !selectedKey}
-          className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-100 disabled:opacity-50"
+          className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-700 transition-colors hover:bg-slate-100 disabled:opacity-50"
         >
           {busy === 'section' ? '생성 중...' : '이 섹션 다시 쓰기'}
         </button>
@@ -383,7 +387,7 @@ export function SpecEditor() {
           type="button"
           onClick={handleCritique}
           disabled={busy !== null}
-          className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-100 disabled:opacity-50"
+          className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-700 transition-colors hover:bg-slate-100 disabled:opacity-50"
         >
           {busy === 'critique' ? '분석 중...' : '빈틈 지적'}
         </button>
@@ -422,7 +426,7 @@ export function SpecEditor() {
               key={section.key}
               type="button"
               onClick={() => selectSection(section.key)}
-              className={`truncate rounded-md px-3 py-2 text-left text-sm ${
+              className={`truncate rounded-md px-3 py-2 text-left text-sm transition-colors ${
                 section.key === selectedKey ? 'bg-slate-100 text-slate-900 font-semibold' : 'text-slate-700 hover:bg-white'
               }`}
             >
@@ -439,15 +443,19 @@ export function SpecEditor() {
           value={selectedSection?.content ?? ''}
           onChange={(e) => updateSectionContent(e.target.value)}
           rows={20}
-          className="min-w-0 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none"
+          className="min-w-0 w-full rounded-md border border-slate-300 px-3 py-2 text-sm transition-colors focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
         />
       </div>
 
       <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2">
-        <section className="rounded-lg border border-slate-200 p-4">
+        <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
           <h2 className="mb-3 text-sm font-semibold text-slate-800">가정/리스크 트래커</h2>
           <ul className="mb-3 flex flex-col gap-2">
-            {spec.risks.length === 0 && <li className="text-sm text-slate-400">아직 등록된 리스크가 없습니다.</li>}
+            {spec.risks.length === 0 && (
+              <li className="rounded-lg border border-dashed border-slate-200 p-4 text-center text-sm text-slate-400">
+                아직 등록된 리스크가 없습니다.
+              </li>
+            )}
             {spec.risks.map((risk) => (
               <li key={risk.id} className="flex items-center gap-2">
                 <input
@@ -488,23 +496,25 @@ export function SpecEditor() {
               value={newRiskText}
               onChange={(e) => setNewRiskText(e.target.value)}
               placeholder="새 가정/리스크 입력"
-              className="flex-1 rounded-md border border-slate-300 px-3 py-1.5 text-sm focus:border-slate-400 focus:outline-none"
+              className="flex-1 rounded-md border border-slate-300 px-3 py-1.5 text-sm transition-colors focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
             />
             <button
               type="submit"
               disabled={!newRiskText.trim()}
-              className="rounded-md bg-primary-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-600 disabled:opacity-50"
+              className="rounded-md bg-primary-500 px-3 py-1.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-primary-600 disabled:opacity-50"
             >
               추가
             </button>
           </form>
         </section>
 
-        <section className="rounded-lg border border-slate-200 p-4">
+        <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
           <h2 className="mb-3 text-sm font-semibold text-slate-800">이해관계자 확인 체크리스트</h2>
           <ul className="mb-3 flex flex-col gap-2">
             {spec.stakeholders.length === 0 && (
-              <li className="text-sm text-slate-400">아직 등록된 이해관계자가 없습니다.</li>
+              <li className="rounded-lg border border-dashed border-slate-200 p-4 text-center text-sm text-slate-400">
+                아직 등록된 이해관계자가 없습니다.
+              </li>
             )}
             {spec.stakeholders.map((person) => (
               <li key={person.id} className="flex items-center gap-2">
@@ -546,12 +556,12 @@ export function SpecEditor() {
               value={newStakeholderName}
               onChange={(e) => setNewStakeholderName(e.target.value)}
               placeholder="새 이해관계자 이름"
-              className="flex-1 rounded-md border border-slate-300 px-3 py-1.5 text-sm focus:border-slate-400 focus:outline-none"
+              className="flex-1 rounded-md border border-slate-300 px-3 py-1.5 text-sm transition-colors focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
             />
             <button
               type="submit"
               disabled={!newStakeholderName.trim()}
-              className="rounded-md bg-primary-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-600 disabled:opacity-50"
+              className="rounded-md bg-primary-500 px-3 py-1.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-primary-600 disabled:opacity-50"
             >
               추가
             </button>

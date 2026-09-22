@@ -48,7 +48,7 @@ export function Home() {
   return (
     <div className="flex min-h-screen">
       <Sidebar />
-      <main className="flex-1 px-4 py-10">
+      <main className="flex-1 bg-slate-50 px-4 py-10">
         <div className="mx-auto max-w-3xl">
           <h1 className="mb-6 text-xl font-bold text-slate-900">프로젝트</h1>
 
@@ -57,14 +57,16 @@ export function Home() {
           ) : (
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {projects.length === 0 && (
-                <p className="col-span-full mb-1 text-slate-500">아직 프로젝트가 없습니다.</p>
+                <div className="col-span-full rounded-lg border border-dashed border-slate-200 p-6 text-center">
+                  <p className="text-slate-500">아직 프로젝트가 없습니다.</p>
+                </div>
               )}
 
               {projects.map((project) => (
                 <Link
                   key={project.id}
                   to={`/projects/${project.id}`}
-                  className="rounded-lg border border-slate-200 p-4 transition-shadow hover:border-slate-300 hover:shadow-sm"
+                  className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:border-slate-300 hover:shadow-md"
                 >
                   <h2 className="mb-1 font-medium text-slate-900">{project.name}</h2>
                   <p className="text-xs text-slate-400">{toRelativeTime(project.updatedAt)}</p>
@@ -77,7 +79,7 @@ export function Home() {
                     e.preventDefault()
                     handleCreateProject()
                   }}
-                  className="rounded-lg border border-slate-200 p-4"
+                  className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm"
                 >
                   <label htmlFor="new-project-name" className="mb-2 block text-xs text-slate-500">
                     프로젝트 이름
@@ -88,12 +90,12 @@ export function Home() {
                       value={newProjectName}
                       onChange={(e) => setNewProjectName(e.target.value)}
                       placeholder="프로젝트 이름"
-                      className="min-w-0 flex-1 rounded-md border border-slate-300 px-3 py-1.5 text-sm focus:border-slate-400 focus:outline-none"
+                      className="min-w-0 flex-1 rounded-md border border-slate-300 px-3 py-1.5 text-sm transition-colors focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
                     />
                     <button
                       type="submit"
                       disabled={!newProjectName.trim()}
-                      className="rounded-md bg-primary-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-600 disabled:opacity-50"
+                      className="rounded-md bg-primary-500 px-3 py-1.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-primary-600 disabled:opacity-50"
                     >
                       만들기
                     </button>
@@ -103,7 +105,7 @@ export function Home() {
                 <button
                   type="button"
                   onClick={() => setCreating(true)}
-                  className="rounded-lg border border-dashed border-slate-300 p-4 text-left text-sm text-slate-500 hover:border-slate-400 hover:text-slate-700"
+                  className="rounded-lg border border-dashed border-slate-300 p-4 text-left text-sm text-slate-500 transition-colors hover:border-slate-400 hover:bg-slate-50 hover:text-slate-700"
                 >
                   + 새 프로젝트
                 </button>

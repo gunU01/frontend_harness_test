@@ -68,7 +68,7 @@ export function Sidebar() {
                 <li key={spec.id} className="min-w-0">
                   <Link
                     to={`/specs/${spec.id}`}
-                    className="block truncate text-sm text-slate-700 hover:text-slate-900"
+                    className="block truncate rounded-md px-2 py-1.5 -mx-2 text-sm text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900"
                   >
                     {spec.title}
                   </Link>
@@ -88,8 +88,8 @@ export function Sidebar() {
               to={item.to}
               className={
                 isActive
-                  ? 'text-sm text-primary-600 font-medium'
-                  : 'text-sm text-slate-600 hover:text-slate-900'
+                  ? 'rounded-md px-2 py-1.5 -mx-2 text-sm font-medium bg-primary-50 text-primary-600'
+                  : 'rounded-md px-2 py-1.5 -mx-2 text-sm text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900'
               }
             >
               {item.label}
@@ -102,7 +102,7 @@ export function Sidebar() {
         <button
           type="button"
           onClick={() => signOut(auth)}
-          className="text-sm text-slate-600 hover:text-slate-900"
+          className="rounded-md px-2 py-1.5 -mx-2 text-sm text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
         >
           로그아웃
         </button>

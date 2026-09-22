@@ -135,7 +135,7 @@ export function Settings() {
                 <button
                   type="button"
                   onClick={() => setSelectedTemplateId(t.id)}
-                  className={`min-w-0 flex-1 truncate rounded-md px-3 py-2 text-left text-sm ${
+                  className={`min-w-0 flex-1 truncate rounded-md px-3 py-2 text-left text-sm transition-colors ${
                     t.id === selectedTemplateId ? 'bg-slate-100 text-slate-900 font-semibold' : 'text-slate-700 hover:bg-white'
                   }`}
                 >
@@ -155,7 +155,7 @@ export function Settings() {
             <button
               type="button"
               onClick={addTemplate}
-              className="mt-1 rounded-md border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-white"
+              className="mt-1 rounded-md border border-slate-300 px-3 py-1.5 text-sm text-slate-700 transition-colors hover:bg-white"
             >
               + 새 문서 타입
             </button>
@@ -170,7 +170,7 @@ export function Settings() {
                 id="template-name"
                 value={selectedTemplate.name}
                 onChange={(e) => updateTemplate(selectedTemplate.id, { name: e.target.value })}
-                className="mb-4 w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm focus:border-slate-400 focus:outline-none"
+                className="mb-4 w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm transition-colors focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
               />
 
               <h3 className="mb-3 text-sm font-semibold text-slate-700">섹션 템플릿</h3>
@@ -182,7 +182,7 @@ export function Settings() {
                       <input
                         value={section.title}
                         onChange={(e) => updateSection(index, { title: e.target.value })}
-                        className="min-w-0 flex-1 rounded-md border border-slate-300 px-3 py-1.5 text-sm focus:border-slate-400 focus:outline-none"
+                        className="min-w-0 flex-1 rounded-md border border-slate-300 px-3 py-1.5 text-sm transition-colors focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
                       />
                       <div className="flex shrink-0 items-center gap-1">
                         <button
@@ -190,7 +190,7 @@ export function Settings() {
                           onClick={() => moveSection(index, -1)}
                           disabled={index === 0}
                           aria-label="위로 이동"
-                          className="flex h-7 w-7 items-center justify-center rounded-md border border-slate-300 text-xs text-slate-600 hover:bg-slate-50 disabled:opacity-30"
+                          className="flex h-7 w-7 items-center justify-center rounded-md border border-slate-300 text-xs text-slate-600 transition-colors hover:bg-slate-50 disabled:opacity-30"
                         >
                           ↑
                         </button>
@@ -199,7 +199,7 @@ export function Settings() {
                           onClick={() => moveSection(index, 1)}
                           disabled={index === selectedTemplate.sections.length - 1}
                           aria-label="아래로 이동"
-                          className="flex h-7 w-7 items-center justify-center rounded-md border border-slate-300 text-xs text-slate-600 hover:bg-slate-50 disabled:opacity-30"
+                          className="flex h-7 w-7 items-center justify-center rounded-md border border-slate-300 text-xs text-slate-600 transition-colors hover:bg-slate-50 disabled:opacity-30"
                         >
                           ↓
                         </button>
@@ -207,7 +207,7 @@ export function Settings() {
                           type="button"
                           onClick={() => removeSection(index)}
                           aria-label="삭제"
-                          className="flex h-7 w-7 items-center justify-center rounded-md border border-red-200 text-xs text-red-600 hover:bg-red-50"
+                          className="flex h-7 w-7 items-center justify-center rounded-md border border-red-200 text-xs text-red-600 transition-colors hover:bg-red-50"
                         >
                           ✕
                         </button>
@@ -217,7 +217,7 @@ export function Settings() {
                       value={section.hint}
                       onChange={(e) => updateSection(index, { hint: e.target.value })}
                       rows={2}
-                      className="w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600 focus:border-slate-400 focus:outline-none"
+                      className="w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600 transition-colors focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
                     />
                   </div>
                 ))}
@@ -225,7 +225,7 @@ export function Settings() {
               <button
                 type="button"
                 onClick={addSection}
-                className="mt-3 rounded-md border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50"
+                className="mt-3 rounded-md border border-slate-300 px-3 py-1.5 text-sm text-slate-700 transition-colors hover:bg-slate-50"
               >
                 섹션 추가
               </button>
@@ -243,7 +243,7 @@ export function Settings() {
           value={productContext}
           onChange={(e) => setProductContext(e.target.value)}
           rows={4}
-          className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none"
+          className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm transition-colors focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
         />
       </section>
 
@@ -256,7 +256,7 @@ export function Settings() {
           value={glossary}
           onChange={(e) => setGlossary(e.target.value)}
           rows={4}
-          className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none"
+          className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm transition-colors focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
         />
       </section>
     </main>

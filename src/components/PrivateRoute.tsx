@@ -20,7 +20,7 @@ export function PrivateRoute() {
   return (
     <div className="flex min-h-screen">
       <Sidebar />
-      <div className="flex-1">
+      <div className="flex-1 bg-slate-50">
         <Outlet />
       </div>
     </div>

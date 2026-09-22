@@ -39,7 +39,7 @@ export function Heatmap({ rowLabels, columnLabels, cells, className }: HeatmapPr
         <button
           type="button"
           onClick={() => setView((v) => (v === 'chart' ? 'table' : 'chart'))}
-          className="rounded-md border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50"
+          className="rounded-md border border-slate-300 px-3 py-1.5 text-sm text-slate-600 transition-colors hover:bg-slate-50"
         >
           {view === 'chart' ? '표로 보기' : '차트로 보기'}
         </button>

@@ -66,7 +66,7 @@ export function NewSpec() {
                 key={template.id}
                 type="button"
                 onClick={() => setSelectedTemplate(template)}
-                className="rounded-lg border border-slate-200 p-4 text-left transition-shadow hover:border-slate-300 hover:shadow-sm"
+                className="rounded-lg border border-slate-200 bg-white p-4 text-left shadow-sm transition-shadow hover:border-slate-300 hover:shadow-md"
               >
                 <h2 className="mb-1 font-medium text-slate-900">{template.name}</h2>
                 <p className="text-sm text-slate-500">
@@ -92,7 +92,7 @@ export function NewSpec() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="제목"
-              className="rounded-md border border-slate-300 px-3 py-1.5 text-sm focus:border-slate-400 focus:outline-none"
+              className="rounded-md border border-slate-300 px-3 py-1.5 text-sm transition-colors focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
             />
           </div>
           <div className="flex flex-col gap-1">
@@ -104,7 +104,7 @@ export function NewSpec() {
               value={oneLiner}
               onChange={(e) => setOneLiner(e.target.value)}
               placeholder="한 줄 문제 정의"
-              className="rounded-md border border-slate-300 px-3 py-1.5 text-sm focus:border-slate-400 focus:outline-none"
+              className="rounded-md border border-slate-300 px-3 py-1.5 text-sm transition-colors focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
             />
           </div>
           <div className="flex gap-2">
@@ -112,14 +112,14 @@ export function NewSpec() {
               type="button"
               onClick={handleCreate}
               disabled={!title.trim()}
-              className="rounded-md bg-primary-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-600 disabled:opacity-50"
+              className="rounded-md bg-primary-500 px-3 py-1.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-primary-600 disabled:opacity-50"
             >
               만들기
             </button>
             <button
               type="button"
               onClick={() => setSelectedTemplate(null)}
-              className="rounded-md border border-slate-300 px-3 py-1.5 text-sm text-slate-600"
+              className="rounded-md border border-slate-300 px-3 py-1.5 text-sm text-slate-600 transition-colors hover:bg-slate-50"
             >
               다른 타입 선택
             </button>
