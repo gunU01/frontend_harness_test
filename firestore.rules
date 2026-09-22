@@ -1,0 +1,38 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // admins/{uid} 문서가 존재하면 그 uid는 관리자. 이 컬렉션은 아래 admins 매치에서
+    // 쓰기를 완전히 막아(if false) 관리자 본인도 클라이언트 코드로는 절대 쓸 수 없다 —
+    // 관리자 지정/해제는 Firebase 콘솔에서 직접 문서를 만들고 지우는 것으로만 가능하다.
+    function isAdmin() {
+      return request.auth != null && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    match /config/{uid} {
+      allow read, write: if request.auth.uid == uid;
+    }
+    match /admins/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false;
+    }
+    match /specs/{specId} {
+      allow read: if resource.data.published == true || (request.auth != null && request.auth.uid == resource.data.uid) || isAdmin();
+      allow delete: if request.auth != null && request.auth.uid == resource.data.uid;
+      allow update: if request.auth != null && request.auth.uid == resource.data.uid && request.resource.data.uid == resource.data.uid;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.uid;
+    }
+    match /projects/{projectId} {
+      // specs와 달리 published 개념이 없다 — 프로젝트는 항상 소유자 전용.
+      allow read: if request.auth != null && request.auth.uid == resource.data.uid;
+      allow delete: if request.auth != null && request.auth.uid == resource.data.uid;
+      allow update: if request.auth != null && request.auth.uid == resource.data.uid && request.resource.data.uid == resource.data.uid;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.uid;
+    }
+    match /events/{eventId} {
+      // append-only 로그: 생성만 허용하고, 소유자라도 과거 이벤트를 고치거나 지울 수 없다.
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.uid;
+      allow read: if (request.auth != null && request.auth.uid == resource.data.uid) || isAdmin();
+      allow update, delete: if false;
+    }
+  }
+}
